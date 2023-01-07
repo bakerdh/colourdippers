@@ -1,0 +1,93 @@
+---
+title: "Binocular integration of chromatic information"
+author: |
+   | Daniel H. Baker, Kirralise J. Hansford, Federico G. Segala, Rowan J. Huxley,   
+   | Joel T. Martin, Lauren E. Welbourne & Alex R. Wade
+date: "`r Sys.Date()`"
+output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+    toc: no
+    keep_tex: yes
+  word_document: default
+  pdf_document:
+    toc: no
+  html_document: default
+bibliography: references.bib
+csl: elife.csl
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Abstract
+
+# Introduction
+
+
+
+
+# Materials & Methods
+
+## Participants
+
+All four experiments were completed by the first author (DHB) and two other participants, who differed for each experiment. Written informed consent was provided before data collection began, and all procedures were approved by the ethics committee of the Department of Psychology at the University of York.
+
+## Apparatus & stimuli
+
+In Experiments 1 and 2, the stimuli were horizontal sinusoidal gratings with a spatial frequency of 1c/deg. The gratings were windowed by a raised cosine envelope with a diameter of 3 degrees. Spatial phase, relative to a central fixation cross, was randomised on each trial across the four cardinal phases. In the achromatic conditions, the sine-wave modulated all three colour channels equally. In the L-M condition, we generated isoluminant stimuli for each participant (see Procedures) designed to maximise contrast between L and M cones, whilst keeping S cone activity constant. In the (L+M)-S condition, the isoluminant stimuli maximised S-cone contrast. Stimuli were converted from cone space to monitor RGB coordinates using the monitor spectral readings and the Stockman-Sharpe 2 degree cone fundamentals [@Stockman2000].
+
+The stimuli in Experiments 3 and 4 were temporal modulations of luminance and colour, using the same raised cosine envelope as described above, but with no further spatial modulation. The stimuli counterphase flickered sinusoidally at 4Hz, along the same axes of luminance and colour as described for Experiments 1 and 2.
+
+In all experiments, we displayed a binocular fusion lock, consisting of three concentric rings of small square elements with random colour. A black central fixation cross was also displayed throughout.
+
+All stimuli were presented on an Iiyama VisionMaster Pro 510 CRT monitor, with a refresh rate of 100Hz, and a resolution of 1024 x 768 pixels. The display was driven by a ViSaGe MkII stimulus generator (Cambridge Research Systems Ltd., Kent, UK) running in 42-bit colour mode (14 bits per colour channel). We presented stimuli to the left and right eyes independently using a four-mirror stereoscope with front-silvered mirrors. The display was luminance calibrated using a ColourCal photometer (Cambridge Research Systems), and gamma corrected by fitting a four-parameter gamma function to the output of each CRT gun. The maximum luminance was 87 cd/m$^2$. We also measured the spectral output of each phosphor using a Jaz spectroradiometer (Ocean Insight, Florida), and used these measurements to convert between LMS (cone) space and the monitor RGB coordinates.
+
+## Procedure
+
+All experiments took place in a darkened room. Participants placed their heads in a chin rest mounted on a height-adjustable table, to which the stereoscope was also attached. The total optical viewing distance (including the light path through the mirrors) was XXcm, at which distance 1 degree of visual angle encompassed 48 pixels on the monitor.
+
+Before beginning primary data collection, each participant completed an isoluminance adjustment task. Stimuli were presented that counterphase flickered at 10Hz, defined about either the L-M or (L+M)-S plane in cone space. Participants used a trackball to dynamically adjust the angle of the stimulus to minimise the percept of flicker. Each participant completed ten such trials for each colour plane, and the average angle across repetition was taken as the isoluminant point, and used to generate stimuli for the main experiment for that participant. Settings were very similar across participants for the (L+M)-S direction, and varied somewhat more for the L-M direction (Figure?).
+
+*Figure here summarising the isoluminant data*
+
+In Experiments 1 and 3, participants completed a two-interval-forced-choice (2IFC) contrast discrimination task.
+
+In Experiments 2 and 3, participants completed a 2IFC dichoptic masking task. 
+
+## Data analysis and computational modelling
+
+Psychometric functions from each experiment were fit with \emph{psignifit} 4 to estimate full posterior distributions for threshold and slope parameters via a Bayesian numerical integration method [@Schutt2016]. We also implemented a Bayesian hierarchical version of the two stage model of @Meese2006 using the Stan language [@Carpenter2017]. This used a Bernoulli distribution to model the trial-by-trial response data, and was fit separately to each chromatic condition of Experiments 1 and 3 (i.e. 6 model fits in total). The modelling primarily focuses on comparing posterior parameter distributions across conditions and experiments, rather than a model comparison approach. We generated over 1 million posterior samples for each model, and retained 10% of them for plotting.
+
+## Data and code availability
+
+All experimental code, raw data and analysis scripts are available at: https://osf.io/3vdga/
+
+# Results
+
+## Experiment 1
+
+## Experiment 2
+
+## Experiment 3
+
+## Experiment 4
+
+
+# Discussion
+
+
+
+# Conclusions
+
+
+# Acknowledgements
+
+Supported by BBSRC grant BB/V007580/1 awarded to DHB and ARW.
+
+# References
+
+
+
+

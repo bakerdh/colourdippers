@@ -1,0 +1,196 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit} % times entry-spacing
+\setlength{\cslentryspacingunit}{\parskip}
+\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
+ {% don't indent paragraphs
+  \setlength{\parindent}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+  \let\oldpar\par
+  \def\par{\hangindent=\cslhangindent\oldpar}
+  \fi
+  % set entry spacing
+  \setlength{\parskip}{#2\cslentryspacingunit}
+ }%
+ {}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Binocular integration of chromatic information},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Binocular integration of chromatic information}
+\author{Daniel H. Baker, Kirralise J. Hansford, Federico G. Segala, Rowan J. Huxley,\\
+Joel T. Martin, Lauren E. Welbourne \& Alex R. Wade}
+\date{2023-01-07}
+
+\begin{document}
+\maketitle
+
+\hypertarget{abstract}{%
+\section{Abstract}\label{abstract}}
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+\hypertarget{materials-methods}{%
+\section{Materials \& Methods}\label{materials-methods}}
+
+\hypertarget{participants}{%
+\subsection{Participants}\label{participants}}
+
+All four experiments were completed by the first author (DHB) and two other participants, who differed for each experiment. Written informed consent was provided before data collection began, and all procedures were approved by the ethics committee of the Department of Psychology at the University of York.
+
+\hypertarget{apparatus-stimuli}{%
+\subsection{Apparatus \& stimuli}\label{apparatus-stimuli}}
+
+In Experiments 1 and 2, the stimuli were horizontal sinusoidal gratings with a spatial frequency of 1c/deg. The gratings were windowed by a raised cosine envelope with a diameter of 3 degrees. Spatial phase, relative to a central fixation cross, was randomised on each trial across the four cardinal phases. In the achromatic conditions, the sine-wave modulated all three colour channels equally. In the L-M condition, we generated isoluminant stimuli for each participant (see Procedures) designed to maximise contrast between L and M cones, whilst keeping S cone activity constant. In the (L+M)-S condition, the isoluminant stimuli maximised S-cone contrast. Stimuli were converted from cone space to monitor RGB coordinates using the monitor spectral readings and the Stockman-Sharpe 2 degree cone fundamentals (Stockman and Sharpe, 2000).
+
+The stimuli in Experiments 3 and 4 were temporal modulations of luminance and colour, using the same raised cosine envelope as described above, but with no further spatial modulation. The stimuli counterphase flickered sinusoidally at 4Hz, along the same axes of luminance and colour as described for Experiments 1 and 2.
+
+In all experiments, we displayed a binocular fusion lock, consisting of three concentric rings of small square elements with random colour. A black central fixation cross was also displayed throughout.
+
+All stimuli were presented on an Iiyama VisionMaster Pro 510 CRT monitor, with a refresh rate of 100Hz, and a resolution of 1024 x 768 pixels. The display was driven by a ViSaGe MkII stimulus generator (Cambridge Research Systems Ltd., Kent, UK) running in 42-bit colour mode (14 bits per colour channel). We presented stimuli to the left and right eyes independently using a four-mirror stereoscope with front-silvered mirrors. The display was luminance calibrated using a ColourCal photometer (Cambridge Research Systems), and gamma corrected by fitting a four-parameter gamma function to the output of each CRT gun. The maximum luminance was 87 cd/m\(^2\). We also measured the spectral output of each phosphor using a Jaz spectroradiometer (Ocean Insight, Florida), and used these measurements to convert between LMS (cone) space and the monitor RGB coordinates.
+
+\hypertarget{procedure}{%
+\subsection{Procedure}\label{procedure}}
+
+All experiments took place in a darkened room. Participants placed their heads in a chin rest mounted on a height-adjustable table, to which the stereoscope was also attached. The total optical viewing distance (including the light path through the mirrors) was XXcm, at which distance 1 degree of visual angle encompassed 48 pixels on the monitor.
+
+Before beginning primary data collection, each participant completed an isoluminance adjustment task. Stimuli were presented that counterphase flickered at 10Hz, defined about either the L-M or (L+M)-S plane in cone space. Participants used a trackball to dynamically adjust the angle of the stimulus to minimise the percept of flicker. Each participant completed ten such trials for each colour plane, and the average angle across repetition was taken as the isoluminant point, and used to generate stimuli for the main experiment for that participant. Settings were very similar across participants for the (L+M)-S direction, and varied somewhat more for the L-M direction (Figure?).
+
+\emph{Figure here summarising the isoluminant data}
+
+\hypertarget{data-analysis-and-computational-modelling}{%
+\subsection{Data analysis and computational modelling}\label{data-analysis-and-computational-modelling}}
+
+Psychometric functions from each experiment were fit with \emph{psignifit} 4 to estimate full posterior distributions for threshold and slope parameters via a Bayesian numerical integration method (Schütt et al., 2016). We also implemented a Bayesian hierarchical version of the two stage model of Meese et al. (2006) using the Stan language (Carpenter et al., 2017). This used a Bernoulli distribution to model the trial-by-trial response data, and was fit separately to each chromatic condition of Experiments 1 and 3 (i.e.~6 model fits in total). The modelling primarily focuses on comparing posterior parameter distributions across conditions and experiments, rather than a model comparison approach. We generated over 1 million posterior samples for each model, and retained 10\% of them for plotting.
+
+\hypertarget{data-and-code-availability}{%
+\subsection{Data and code availability}\label{data-and-code-availability}}
+
+All experimental code, raw data and analysis scripts are available at: \url{https://osf.io/3vdga/}
+
+\hypertarget{results}{%
+\section{Results}\label{results}}
+
+\hypertarget{experiment-1}{%
+\subsection{Experiment 1}\label{experiment-1}}
+
+\hypertarget{experiment-2}{%
+\subsection{Experiment 2}\label{experiment-2}}
+
+\hypertarget{experiment-3}{%
+\subsection{Experiment 3}\label{experiment-3}}
+
+\hypertarget{experiment-4}{%
+\subsection{Experiment 4}\label{experiment-4}}
+
+\hypertarget{discussion}{%
+\section{Discussion}\label{discussion}}
+
+\hypertarget{conclusions}{%
+\section{Conclusions}\label{conclusions}}
+
+\hypertarget{acknowledgements}{%
+\section{Acknowledgements}\label{acknowledgements}}
+
+Supported by BBSRC grant BB/V007580/1 awarded to DHB and ARW.
+
+\hypertarget{references}{%
+\section*{References}\label{references}}
+\addcontentsline{toc}{section}{References}
+
+\hypertarget{refs}{}
+\begin{CSLReferences}{1}{0}
+\leavevmode\vadjust pre{\hypertarget{ref-Carpenter2017}{}}%
+Carpenter B, Gelman A, Hoffman MD, Lee D, Goodrich B, Betancourt M, Brubaker M, Guo J, Li P, Riddell A. 2017. Stan: A probabilistic programming language. \emph{Journal of Statistical Software} \textbf{76}:1--32. doi:\href{https://doi.org/10.18637/jss.v076.i01}{10.18637/jss.v076.i01}
+
+\leavevmode\vadjust pre{\hypertarget{ref-Meese2006}{}}%
+Meese TS, Georgeson MA, Baker DH. 2006. Binocular contrast vision at and above threshold. \emph{J Vis} \textbf{6}:1224--43. doi:\href{https://doi.org/10.1167/6.11.7}{10.1167/6.11.7}
+
+\leavevmode\vadjust pre{\hypertarget{ref-Schutt2016}{}}%
+Schütt HH, Harmeling S, Macke JH, Wichmann FA. 2016. Painfree and accurate bayesian estimation of psychometric functions for (potentially) overdispersed data. \emph{Vision Res} \textbf{122}:105--123. doi:\href{https://doi.org/10.1016/j.visres.2016.02.002}{10.1016/j.visres.2016.02.002}
+
+\leavevmode\vadjust pre{\hypertarget{ref-Stockman2000}{}}%
+Stockman A, Sharpe LT. 2000. The spectral sensitivities of the middle- and long-wavelength-sensitive cones derived from measurements in observers of known genotype. \emph{Vision Res} \textbf{40}:1711--37. doi:\href{https://doi.org/10.1016/s0042-6989(00)00021-3}{10.1016/s0042-6989(00)00021-3}
+
+\end{CSLReferences}
+
+\end{document}
