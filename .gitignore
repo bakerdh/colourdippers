@@ -40,3 +40,5 @@ vignettes/*.pdf
 
 # local directory for data storage
 /local/
+# miscellaneous scripts
+/misc/

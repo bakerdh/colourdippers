@@ -1,8 +1,8 @@
 ---
-title: "Binocular integration of chromatic information"
+title: "Binocular integration of chromatic and luminance signals"
 author: |
-   | Daniel H. Baker, Kirralise J. Hansford, Federico G. Segala, Rowan J. Huxley,   
-   | Joel T. Martin, Lauren E. Welbourne & Alex R. Wade
+   | Daniel H. Baker, Kirralise J. Hansford, Federico G. Segala, Annie Y. Morsi,
+   | Rowan J. Huxley, Joel T. Martin, Maya Rockman & Alex R. Wade
 date: "`r Sys.Date()`"
 output:
   bookdown::pdf_document2:
@@ -10,73 +10,1417 @@ output:
     toc: no
     keep_tex: yes
   word_document: default
-  pdf_document:
-    toc: no
   html_document: default
 bibliography: references.bib
-csl: elife.csl
+csl: journal-of-vision.csl
+header-includes: 
+  \usepackage{float} \floatplacement{figure}{H} 
+  \newcommand{\beginsupplement}{\setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
 ---
 
 ```{r setup, include=FALSE}
+
+processdata <- 0
+# the processdata flag has three settings:
+# 0: do no analysis, just produce the pdf of the manuscript
+# 1: fit psychometric functions and plot graphs
+# 2: do Stan modelling (takes N hours)
+
+nsamples <- 10000    # number of Stan samples for modelling
+
+# reasonably compact code to check which packages are installed, install the missing ones, and activate all
+packagelist <- c('knitr','reticulate','osfr','bookdown','rstan','coda','modeest','pals','pracma','doParallel','R.matlab') # list of CRAN packages
+missingpackages <- packagelist[!packagelist %in% installed.packages()[,1]]
+if (length(missingpackages)>0){install.packages(missingpackages)}
+toinstall <- packagelist[which(!packagelist %in% (.packages()))]
+invisible(lapply(toinstall,library,character.only=TRUE))
+
+# helper function to make colours transparent
+addalpha <- function(col, alpha=1){apply(sapply(col, col2rgb)/255, 2, function(x) rgb(x[1], x[2], x[3], alpha=alpha))}
+
+lms2rgb <- function(phosphors,fundamentals,lms){
+  rgbTOlms <- t(as.matrix(fundamentals)) %*% as.matrix(phosphors)
+  lmsTOrgb <- solve(rgbTOlms)
+  rgb <- lmsTOrgb %*% lms
+return(rgb)}
+
+getmodelresp <- function(p,L,R){
+  Lresp <- (L^p[3])/(p[4] + L + p[6]*R)
+  Rresp <- (R^p[3])/(p[4] + R + p[6]*L)
+  bs <- Lresp + Rresp
+  resp <- (bs^p[1])/(p[5] + bs^p[2])
+return(resp)}
+
+discriminate <- function(p,pedC,cond) {
+
+  if (cond==1){baseline <- getmodelresp(p,pedC,0)}
+  if (cond==2){baseline <- getmodelresp(p,pedC,pedC)}
+  if (cond==3){baseline <- getmodelresp(p,pedC,pedC)}
+  if (cond==4){baseline <- getmodelresp(p,pedC,0)}
+
+  modelresp <- -10
+  contrastinc <- 0
+  if (baseline>-999){
+    while (((modelresp-baseline) < p[7])){
+      contrastinc <- contrastinc + 0.1
+  if (cond==1){modelresp <- getmodelresp(p,pedC+contrastinc,0)}
+  if (cond==2){modelresp <- getmodelresp(p,pedC+contrastinc,pedC+contrastinc)}
+  if (cond==3){modelresp <- getmodelresp(p,pedC+contrastinc,pedC)}
+  if (cond==4){modelresp <- getmodelresp(p,pedC,contrastinc)}
+    }
+    while (((modelresp-baseline) > p[7])){
+      contrastinc <- contrastinc - 0.001
+  if (cond==1){modelresp <- getmodelresp(p,pedC+contrastinc,0)}
+  if (cond==2){modelresp <- getmodelresp(p,pedC+contrastinc,pedC+contrastinc)}
+  if (cond==3){modelresp <- getmodelresp(p,pedC+contrastinc,pedC)}
+  if (cond==4){modelresp <- getmodelresp(p,pedC,contrastinc)}
+    }    
+    }
+  else{contrastinc <- 99}
+return(contrastinc) }
+
+
+use_miniconda('r-reticulate')
+# install psignifit in the terminal with:
+# sudo pip install https://github.com/wichmann-lab/python-psignifit/zipball/master
+ps <- import('psignifit')
+
+# calculate constant to scale the slope parameter to the Gaussian SD
+C <- ps$utils$my_norminv(1-0.05,0,1) - ps$utils$my_norminv(0.05,0,1)
+
+if (!dir.exists('local/fits')){dir.create('local/fits')}
+
 knitr::opts_chunk$set(echo = TRUE)
+
 ```
+
+```{r plotisoluminance, include=FALSE}
+
+if (processdata>0){
+  
+fundamentals <- read.csv('local/fundamentals.csv')
+phosphors <- read.csv('local/phosphors.csv')
+thetalist <- (0:360)*pi/180
+
+pdf('Figures/isosettings.pdf',width=11,height=6)
+
+isodata <- read.csv('local/isosettings.csv')
+isomeans <- colMeans(isodata)
+
+collist <- brewer.set1(9)
+
+par(mfrow=c(1,2))
+
+ticklocs <- seq(-1,1,0.5)
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-1,1), ylim=c(-1,1))  
+axis(1, at=ticklocs, tck=0.01, lab=F, lwd=2)     
+axis(2, at=ticklocs, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklocs, side = 1, at=ticklocs, line=0.3)    
+mtext(text = ticklocs, side = 2, at=ticklocs, line=0.2, las=1)
+title(xlab="L", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="M", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main='L-M gratings', col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+
+text(-0.95,0.9,'(a)',cex=2)
+
+lines(c(0,0),c(-1,1),lty=2)
+lines(c(-1,1),c(0,0),lty=2)
+
+rgbvals <- matrix(0,nrow=length(thetalist),ncol=3)
+for (n in 1:length(thetalist)){
+    theta <- thetalist[n]
+    stimLMS <- c(cos(theta), sin(theta), 0)
+    rgbvals[n,] <- lms2rgb(phosphors,fundamentals,stimLMS)
+}
+
+rgbvals <- (rgbvals/(2*max(abs(rgbvals)))) + 0.5
+for (n in 1:length(thetalist)){    points(cos(thetalist[n]),sin(thetalist[n]),pch=16,col=rgb(rgbvals[n,1],rgbvals[n,2],rgbvals[n,3]),cex=2)}
+
+
+arctheta <- seq(60,179,0.5)*pi/180
+lines(cos(arctheta)*0.45,sin(arctheta)*0.5,lwd=2);
+lines(-cos(arctheta)*0.45,-sin(arctheta)*0.5,lwd=2);
+
+for (s in 1:5){
+    a <- isomeans[s]*pi/180
+    lines(cos(a)*c(-0.9, 0.9),sin(a)*c(-0.9,0.9),lwd=2,col=collist[s]);
+}
+
+legend(-1,-0.25,c('P1','P2','P3','P4','P5'),lwd=2,col=collist[1:5],box.lwd=2,cex=1.2,bg='white')
+
+
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-1,1), ylim=c(-1,1))  
+axis(1, at=ticklocs, tck=0.01, lab=F, lwd=2)     
+axis(2, at=ticklocs, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklocs, side = 1, at=ticklocs, line=0.3)    
+mtext(text = ticklocs, side = 2, at=ticklocs, line=0.2, las=1)
+title(xlab="L+M", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="S", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main='S-(L+M) gratings', col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+
+text(-0.95,0.9,'(b)',cex=2)
+
+lines(c(0,0),c(-1,1),lty=2)
+lines(c(-1,1),c(0,0),lty=2)
+
+rgbvals <- matrix(0,nrow=length(thetalist),ncol=3)
+for (n in 1:length(thetalist)){
+    theta <- thetalist[n]
+    stimLMS <- c(cos(theta), cos(theta), sin(theta))
+    rgbvals[n,] <- lms2rgb(phosphors,fundamentals,stimLMS)
+}
+
+rgbvals <- (rgbvals/(2*max(abs(rgbvals)))) + 0.5
+for (n in 1:length(thetalist)){    points(cos(thetalist[n]),sin(thetalist[n]),pch=16,col=rgb(rgbvals[n,1],rgbvals[n,2],rgbvals[n,3]),cex=2)}
+
+arctheta <- seq(45,135,0.5)*pi/180
+lines(cos(arctheta)*0.45,sin(arctheta)*0.5,lwd=2);
+lines(-cos(arctheta)*0.45,-sin(arctheta)*0.5,lwd=2);
+
+for (s in 1:5){
+    a <- isomeans[s+5]*pi/180
+    lines(cos(a)*c(-0.9, 0.9),sin(a)*c(-0.9,0.9),lwd=2,col=collist[s]);
+}
+
+dev.off()
+
+}
+
+```
+
+```{r loaddata, include=FALSE}
+
+ex1data <- read.csv('local/Experiment1.csv')
+ex2data <- read.csv('local/Experiment2.csv')
+
+if (processdata>0){
+  
+sublist <- unique(ex1data$Subject)
+explist <- unique(ex1data$Experiment)
+
+options <- NULL
+options$sigmoidName <- 'norm'   # choose a cumulative Gauss as the sigmoid
+options$expType <- '2AFC'   # choose 2-AFC as the paradigm of the experiment
+
+allthresh <- array(0,dim=c(3,3,4,8))
+allslope <- array(0,dim=c(3,3,4,8))
+for (subj in 1:3){
+  subdata <- subset(ex1data,Subject==sublist[subj])
+for (expt in 1:3){
+  expdata <- subset(subdata,Experiment==explist[expt])
+for (cond in 1:4){
+  conddata <- subset(expdata,Condition==(2*cond)|Condition==((2*cond)-1))
+  pedlevs <- unique(conddata$PedestalContrast)
+for (pedlevel in 1:8){
+
+blockdata <- subset(conddata,PedestalContrast==pedlevs[pedlevel])
+
+if (nrow(blockdata)>0){
+targetcontrasts <- sort(unique(blockdata$TargetContrast))
+ntrials <- rep(0,length(targetcontrasts))
+ncorrect <- rep(0,length(targetcontrasts))
+for (lev in 1:length(targetcontrasts)){
+  temp <- subset(blockdata,TargetContrast==targetcontrasts[lev])
+  ntrials[lev] <- nrow(temp)
+  ncorrect[lev] <- sum(temp$IsCorrect)
+}
+
+tofit <- as.matrix(data.frame(20*log10(targetcontrasts),ncorrect,ntrials))
+
+res <- ps$psignifit(tofit,options)
+
+allthresh[subj,expt,cond,pedlevel] <- res$Fit[1]
+allslope[subj,expt,cond,pedlevel] <- res$Fit[2]/C
+}
+
+}}}}
+
+# shift hbin and dich conditions up one
+allthresh[,,3,2:8] <- allthresh[,,3,1:7]
+allthresh[,,4,2:8] <- allthresh[,,4,1:7]
+allslope[,,3,2:8] <- allslope[,,3,1:7]
+allslope[,,4,2:8] <- allslope[,,4,1:7]
+# duplicate the mon threshold conditions for hbin and dich
+allthresh[,,3,1] <- allthresh[,,1,1]
+allthresh[,,4,1] <- allthresh[,,1,1]
+allslope[,,3,1] <- allslope[,,1,1]
+allslope[,,4,1] <- allslope[,,1,1]
+
+meanthresh <- apply(allthresh,2:4,mean)
+meanslope <- apply(allslope,2:4,mean)
+
+SEthresh <- apply(allthresh,2:4,sd)/sqrt(3)
+SEslope <- apply(allslope,2:4,sd)/sqrt(3)
+
+save(file='local/thresholddata.RData',list=c('allthresh','allslope','meanthresh','meanslope','SEthresh','SEslope'))
+
+
+
+pedlist <- c('DET','AC','RG','BY')
+tarlist <- c('AC','RG','BY')
+sublist <- unique(ex2data$Subject)
+
+ntrials <- array(0,dim=c(length(sublist),12,10))
+ncorrect <- ntrials
+contrastsC <- ntrials
+counter <- 0
+for (ped in 1:length(pedlist)){
+  for (tar in 1:length(tarlist)){
+    counter <- counter + 1
+    for (subj in 1:length(sublist)){
+    thiscond <- subset(ex2data,Subject==sublist[subj] & TargetType==tarlist[tar] & PedestalType==pedlist[ped])
+    targetcontrasts <- sort(as.numeric(unique(thiscond$TargetContrast)))
+    for (tlevel in 1:length(targetcontrasts)){
+      thislevel <- subset(thiscond, TargetContrast==targetcontrasts[tlevel])
+      ntrials[subj,counter,tlevel] <- nrow(thislevel)
+      ncorrect[subj,counter,tlevel] <- sum(thislevel$IsCorrect)
+      contrastsC[subj,counter,tlevel] <- targetcontrasts[tlevel]
+    }
+  }
+}
+}
+
+MCSpropcorr <- 100*ncorrect/ntrials
+contrastsdB <- round(20*log10(contrastsC))
+
+MCSthresh <- matrix(0,nrow=length(sublist),ncol=12)
+MCSslope <- MCSthresh
+for (subj in 1:length(sublist)){
+for (cond in 1:12){
+  datatofit <- data.frame(contrastsdB[subj,cond,],ncorrect[subj,cond,],ntrials[subj,cond,])
+  colnames(datatofit) <- c('CdB','Ncorrect','Ntrials')
+
+  res <- ps$psignifit(as.matrix(datatofit),options)
+  
+  MCSthresh[subj,cond] <- res$Fit[1]
+  MCSslope[subj,cond] <- res$Fit[2]/C
+
+}}
+
+thdelev <- array(0,dim=c(3,3,3))
+slopematrix <- array(0,dim=c(3,3,3))
+
+for (subj in 1:length(sublist)){
+thdelev[subj,1,] <- MCSthresh[subj,c(4,7,10)] - MCSthresh[subj,1]
+thdelev[subj,2,] <- MCSthresh[subj,c(5,8,11)] - MCSthresh[subj,2]
+thdelev[subj,3,] <- MCSthresh[subj,c(6,9,12)] - MCSthresh[subj,3]
+
+slopematrix[subj,1,] <- 10.3/MCSslope[subj,c(4,7,10)]
+slopematrix[subj,2,] <- 10.3/MCSslope[subj,c(5,8,11)]
+slopematrix[subj,3,] <- 10.3/MCSslope[subj,c(6,9,12)]
+}
+detslopes <- 10.3/MCSslope[,1:3]
+
+save(file='local/MCSdata.RData',list=c('MCSthresh','MCSslope','thdelev','slopematrix','detslopes','MCSpropcorr','contrastsdB'))
+
+}
+
+```
+
+```{r domodellingsimplex, include=FALSE}
+
+load('local/thresholddata.RData')
+
+getmodelresp <- function(p,L,R){
+  Lresp <- (L^p[3])/(p[4] + L + p[6]*R)
+  Rresp <- (R^p[3])/(p[4] + R + p[6]*L)
+  bs <- Lresp + Rresp
+  resp <- (bs^p[1])/(p[5] + bs^p[2])
+return(resp)}
+
+discriminate <- function(p,pedC,cond) {
+
+  if (cond==1){baseline <- getmodelresp(p,pedC,0)}
+  if (cond==2){baseline <- getmodelresp(p,pedC,pedC)}
+  if (cond==3){baseline <- getmodelresp(p,pedC,pedC)}
+  if (cond==4){baseline <- getmodelresp(p,pedC,0)}
+
+  modelresp <- -10
+  contrastinc <- 0
+  if (baseline>-999){
+
+    while (((modelresp-baseline) < p[7])){
+      contrastinc <- contrastinc + 0.1
+  if (cond==1){modelresp <- getmodelresp(p,pedC+contrastinc,0)}
+  if (cond==2){modelresp <- getmodelresp(p,pedC+contrastinc,pedC+contrastinc)}
+  if (cond==3){modelresp <- getmodelresp(p,pedC+contrastinc,pedC)}
+  if (cond==4){modelresp <- getmodelresp(p,pedC,contrastinc)}
+    }
+    while (((modelresp-baseline) > p[7])){
+      contrastinc <- contrastinc - 0.001
+  if (cond==1){modelresp <- getmodelresp(p,pedC+contrastinc,0)}
+  if (cond==2){modelresp <- getmodelresp(p,pedC+contrastinc,pedC+contrastinc)}
+  if (cond==3){modelresp <- getmodelresp(p,pedC+contrastinc,pedC)}
+  if (cond==4){modelresp <- getmodelresp(p,pedC,contrastinc)}
+    }    
+    }
+  else{contrastinc <- 99}
+return(contrastinc) }
+
+errorfit <- function(p){
+  
+p <- 10^p
+p[2] <- p[2] + 1
+p[2] <- min(p[2],10)
+p[1] <- 1 + p[1] + p[2]
+p[3] <- 1 + p[3]
+
+pedlevelsC <- 10^(pedlist/20)
+pedlevelsC[1] <- 0
+allpred <- array(0,dim=c(4,length(pedlist)))
+
+  for (cond in 1:4){
+    for (pedlev in 1:length(pedlist)){
+      allpred[cond,pedlev] <- discriminate(p,pedlevelsC[pedlev],cond)
+    }
+  }
+
+allpreddB <- 20*log10(allpred)
+rms <- sqrt(mean((allpreddB - datatofit)^2))
+if (is.na(rms)){rms <- 999}
+return(rms)}
+
+
+if (processdata==2){
+
+ntotalsimplexfits <- 100
+
+cluster <- makeCluster(8)
+registerDoParallel(cluster)
+
+pedlist <<- seq(-12,30,6)
+allp <- matrix(0,nrow=3,ncol=7)
+allparams <- array(0,dim=c(3,ntotalsimplexfits,8))
+allrms <- NULL
+ for (cond in 1:3){
+   print(cond)
+   datatofit <<- meanthresh[cond,,]
+
+   nfits <- ntotalsimplexfits
+   for (n in 1:ntotalsimplexfits){
+     if (file.exists(paste0('local/fits/E',cond,'f',n,'.RData'))){nfits <- nfits-1}
+   }
+   
+   if (nfits > 0){
+   foreach(i = 1:nfits, .combine=rbind) %dopar% {
+   sout <- pracma::nelder_mead(errorfit,rnorm(7,sd=0.1)+log10(c(0.5,5.5,0.3,1,0.01,1,0.2)))
+   allout <- c(errorfit(sout$xmin),sout$xmin)
+
+   hassaved <- 0
+   filecount <- 0
+   while (!hassaved){
+     filecount <- filecount + 1
+     if (!file.exists(paste0('local/fits/E',cond,'f',filecount,'.RData'))){
+       save(file=paste0('local/fits/E',cond,'f',filecount,'.RData'),list='allout')
+       hassaved <- 1}
+   }
+   allout <- c(errorfit(sout$xmin),sout$xmin)
+   }
+   }
+   
+   finalout <- matrix(0,nrow=ntotalsimplexfits,ncol=8)
+   for (n in 1:ntotalsimplexfits){
+     if (file.exists(paste0('local/fits/E',cond,'f',n,'.RData'))){
+       load(file=paste0('local/fits/E',cond,'f',n,'.RData'))
+       finalout[n,] <- allout
+     }
+   }
+   i <- which(finalout[,1]==min(finalout[,1]))
+   p <- 10^finalout[i[1],2:8]
+   allrms[cond] <- finalout[i[1],1]
+   p[2] <- p[2] + 1
+   p[2] <- min(p[2],10)
+   p[1] <- 1 + p[1] + p[2]
+   p[3] <- 1 + p[3]
+   allp[cond,] <- p
+   pedlist <<- seq(-6,36,6)
+   
+   allparams[cond,,] <- finalout
+ } 
+  
+save(file='local/simplexfits.RData',list=c('allp','allrms','allparams','ntotalsimplexfits'))
+
+stopCluster(cluster)
+  
+}
+
+```
+
+```{r plotmodellingsimplex, include=FALSE}
+
+if (processdata>0){
+  
+load('local/simplexfits.RData')
+
+pedlist <- -12:39
+pedlevelsC <- 10^(pedlist/20)
+pedlevelsC[1] <- 0
+allpred <- array(0,dim=c(3,4,length(pedlist)))
+
+for (expt in 1:3){
+  for (cond in 1:4){
+    for (pedlev in 1:length(pedlist)){
+      allpred[expt,cond,pedlev] <- discriminate(allp[expt,],pedlevelsC[pedlev],cond)
+    }
+  }
+}
+allpreddB <- 20*log10(allpred)
+
+pdf('Figures/dipperssimplex.pdf',width=12,height=5)
+
+collist <- c('red','blue','orange','darkgreen')
+
+ticklocsx <- seq(-12,36,6)
+ticklabelsx <- c(0,0.5,1,2,4,8,16,32,64)
+ticklocsy <- seq(-12,36,6)
+ticklabelsy <- c(0.25,0.5,1,2,4,8,16,32,64)
+
+par(pty="s",mfcol=c(1,3))  # make axis square
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,39))   
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main='Achromatic')
+
+pedcontrasts <- seq(-12,30,6)
+
+for (cond in 1:4){
+  arrows(pedcontrasts,meanthresh[1,cond,],pedcontrasts,meanthresh[1,cond,]+SEthresh[1,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)
+ arrows(pedcontrasts,meanthresh[1,cond,],pedcontrasts,meanthresh[1,cond,]-SEthresh[1,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)  
+  # lines(pedcontrasts,meanthresh[1,cond,],col=collist[cond],lwd=2)
+  lines(pedlist,allpreddB[1,cond,],col=collist[cond],lwd=2)
+  points(pedcontrasts,meanthresh[1,cond,],pch=16,col=collist[cond],cex=1.5)
+}
+text(24,-9,paste0('RMS = ',round(allrms[1],digits=2),'dB'),cex=2)
+legend(-12,36,c('Monocular','Binocular','Half-bin','Dichoptic'),pch=16,col=collist,box.lwd=2,cex=1.5)
+
+
+par(pty="s")  # make axis square
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,39))  
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)    
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main='Red/Green')
+
+pedcontrasts <- c(-12,seq(0,36,6))
+
+for (cond in 1:4){
+  arrows(pedcontrasts,meanthresh[3,cond,],pedcontrasts,meanthresh[3,cond,]+SEthresh[3,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)
+ arrows(pedcontrasts,meanthresh[3,cond,],pedcontrasts,meanthresh[3,cond,]-SEthresh[3,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)  
+ # lines(pedcontrasts,meanthresh[3,cond,],col=collist[cond],lwd=2)
+  lines(pedlist,allpreddB[3,cond,],col=collist[cond],lwd=2)
+  points(pedcontrasts,meanthresh[3,cond,],pch=16,col=collist[cond],cex=1.5)
+}
+text(24,-9,paste0('RMS = ',round(allrms[2],digits=2),'dB'),cex=2)
+
+
+par(pty="s")  # make axis square
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,39))   
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main='Blue/Yellow')
+
+for (cond in 1:4){
+  arrows(pedcontrasts,meanthresh[2,cond,],pedcontrasts,meanthresh[2,cond,]+SEthresh[2,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)
+ arrows(pedcontrasts,meanthresh[2,cond,],pedcontrasts,meanthresh[2,cond,]-SEthresh[2,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)  
+ # lines(pedcontrasts,meanthresh[2,cond,],col=collist[cond],lwd=2)
+  lines(pedlist,allpreddB[2,cond,],col=collist[cond],lwd=2)
+  points(pedcontrasts,meanthresh[2,cond,],pch=16,col=collist[cond],cex=1.5)
+}
+text(24,-9,paste0('RMS = ',round(allrms[3],digits=2),'dB'),cex=2)
+
+dev.off()
+  
+}
+
+```
+
+```{r domodelling, include=FALSE}
+
+if (processdata==2){
+  
+  numSavedSteps <- nsamples    # total number of MCMC steps
+  adaptSteps = 200  # Number of steps to "tune" the samplers
+  burnInSteps = 200 
+  thinSteps <- 1
+  nChains = 24
+  options(mc.cores=8)
+  
+modelString = "
+  data {
+    int<lower=1> Nsubj ;
+    int<lower=1> Ntotal ;
+    int correct[Ntotal] ;
+    real PedestalContrast[Ntotal] ;
+    real TargetContrast[Ntotal] ;
+    int<lower=1> c[Ntotal] ;
+    int<lower=1> s[Ntotal] ;
+  }
+  parameters {
+    real<lower=0> p[Nsubj] ;
+    real<lower=0> q[Nsubj] ;    
+    real<lower=0> m[Nsubj] ;
+    real<lower=0> S[Nsubj] ;  
+    real<lower=0> Z[Nsubj] ;
+    real<lower=0> w[Nsubj] ;
+    real<lower=0> k[Nsubj] ;
+    
+    real<lower=0> sigma ;
+    real<lower=0> pmu ; 
+    real<lower=0> qmu ; 
+    real<lower=0> mmu ;
+    real<lower=0> Smu ;
+    real<lower=0> Zmu ; 
+    real<lower=0> wmu ; 
+    real<lower=0> kmu ;
+    
+    real<lower=0> psigma ;
+    real<lower=0> qsigma ;
+    real<lower=0> msigma ;
+    real<lower=0> Ssigma ;
+    real<lower=0> Zsigma ;    
+    real<lower=0> wsigma ;
+    real<lower=0> ksigma ;    
+  }
+  model {
+  
+    pmu ~ normal( 1.4 , 1.4/3 ) ;
+    qmu ~ normal( 6.59 , 6.59/3 ) ;
+    mmu ~ normal( 1.28 , 1.28/3 ) ;
+    Smu ~ normal( 0.985 , 0.985/3 ) ;
+    Zmu ~ uniform( 0.001 , 100 ) ;
+    wmu ~ normal( 1 , 0.3333 ) ;
+    kmu ~ normal( 0.194 , 0.194/2 ) ;
+    sigma ~ uniform( 1.0E-3 , 1.0E+3 ) ;
+    psigma ~ uniform( 1.0E-3 , 1.0E+3 ) ;
+    qsigma ~ uniform( 1.0E-3 , 1.0E+3 ) ;
+    msigma ~ uniform( 1.0E-3 , 1.0E+3 ) ;
+    Ssigma ~ uniform( 1.0E-3 , 1.0E+3 ) ;
+    Zsigma ~ uniform( 1.0E-3 , 1.0E+3 ) ;    
+    wsigma ~ uniform( 1.0E-3 , 1.0E+3 ) ;
+    ksigma ~ uniform( 1.0E-3 , 1.0E+3 ) ;
+    
+    p ~ normal( pmu , psigma ) ; // vectorized
+    q ~ normal( qmu , qsigma ) ; // vectorized
+    m ~ normal( mmu , msigma ) ; // vectorized
+    S ~ normal( Smu , Ssigma ) ; // vectorized
+    Z ~ normal( Zmu , Zsigma ) ; // vectorized
+    w ~ normal( wmu , wsigma ) ; // vectorized
+    k ~ normal( kmu , ksigma ) ; // vectorized
+
+    for ( i in 1:Ntotal ) {
+      
+    real Lt ;
+    real Rt ;
+    real Ln ;
+    real Rn ;
+    real targresp ;
+    real nullresp ;
+      
+    if (c[i]==1) { // monocular condition
+    Lt = pow(PedestalContrast[i]+TargetContrast[i],m[s[i]]) / (S[s[i]] + (PedestalContrast[i]+TargetContrast[i])) ;
+    Rt = 0 ;
+    Ln = pow(PedestalContrast[i],m[s[i]]) / (S[s[i]] + PedestalContrast[i]) ;
+    Rn = 0 ; 
+    }
+          
+    if (c[i]==2) { // binocular condition 
+      Lt = pow(PedestalContrast[i]+TargetContrast[i],m[s[i]]) / (S[s[i]] + (PedestalContrast[i]+TargetContrast[i]) + w[s[i]]*(PedestalContrast[i]+TargetContrast[i])) ;
+      Rt = pow(PedestalContrast[i]+TargetContrast[i],m[s[i]]) / (S[s[i]] + (PedestalContrast[i]+TargetContrast[i]) + w[s[i]]*(PedestalContrast[i]+TargetContrast[i])) ;
+      Ln = pow(PedestalContrast[i],m[s[i]]) / (S[s[i]] + PedestalContrast[i] + w[s[i]]*PedestalContrast[i]) ;
+      Rn = pow(PedestalContrast[i],m[s[i]]) / (S[s[i]] + PedestalContrast[i] + w[s[i]]*PedestalContrast[i]) ;
+    }
+    
+    if (c[i]==3) { // half-binocular condition 
+      Lt = pow(PedestalContrast[i]+TargetContrast[i],m[s[i]]) / (S[s[i]] + (PedestalContrast[i]+TargetContrast[i]) + w[s[i]]*PedestalContrast[i]) ;
+      Rt = pow(PedestalContrast[i],m[s[i]]) / (S[s[i]] + PedestalContrast[i] + w[s[i]]*(PedestalContrast[i]+TargetContrast[i])) ;
+      Ln = pow(PedestalContrast[i],m[s[i]]) / (S[s[i]] + PedestalContrast[i] + w[s[i]]*PedestalContrast[i]) ;
+      Rn = pow(PedestalContrast[i],m[s[i]]) / (S[s[i]] + PedestalContrast[i] + w[s[i]]*PedestalContrast[i]) ;  
+    }
+    
+    if (c[i]==4) { // dichoptic condition 
+      Lt = pow(TargetContrast[i],m[s[i]]) / (S[s[i]] + TargetContrast[i] + w[s[i]]*PedestalContrast[i]) ;
+      Rt = pow(PedestalContrast[i],m[s[i]]) / (S[s[i]] + PedestalContrast[i] + w[s[i]]*TargetContrast[i]) ;
+      Ln = 0 ;
+      Rn = pow(PedestalContrast[i],m[s[i]]) / (S[s[i]] + PedestalContrast[i]) ;      
+    }
+    
+    targresp = pow((Lt + Rt), (p[s[i]]+q[s[i]])) / (Z[s[i]] + pow((Lt + Rt), q[s[i]])) ;
+    nullresp = pow((Ln + Rn), (p[s[i]]+q[s[i]])) / (Z[s[i]] + pow((Ln + Rn), q[s[i]])) ;     
+    correct[i] ~ bernoulli((1 + erf((targresp - nullresp)/k[s[i]]))/2) ;
+
+    }
+  }  
+  " # close quote for modelString
+    
+  # Translate to C++ and compile to DSO:
+    dipmodel <- stan_model(model_code=modelString)  
+ 
+  ex1data <- read.csv('local/Experiment1.csv')
+  explist <- unique(ex1data$Experiment)
+  
+for (mod in 1:1){
+  expdata <- subset(ex1data,Experiment==explist[mod])
+  expdata$Participant <- as.numeric(gsub('\\D','',expdata$Subject))
+  expdata$Condition <- ceiling(expdata$Condition/2)
+  
+  dataList = list(correct = expdata$IsCorrect, PedestalContrast = expdata$PedestalContrast, TargetContrast = expdata$TargetContrast, c = expdata$Condition, s = expdata$Participant, Nsubj = max(expdata$Participant), Ntotal = nrow(expdata))
+   
+  # Get MC sample of posterior:
+    stanFit <- sampling(object=dipmodel, 
+                        data = dataList, 
+                        chains = nChains,
+                        iter = (ceiling(numSavedSteps/nChains)*thinSteps
+                                +burnInSteps), 
+                        warmup = burnInSteps, 
+                        thin = thinSteps,
+                        cores = getOption("mc.cores", 1L))
+
+    # convert stan format to coda format:jkn9
+    mcmcCoda2 = mcmc.list(lapply( 1:ncol(stanFit), function(x){mcmc(as.array(stanFit)[,x,])}))
+
+    save(file=paste0('local/E1mod',mod,'.RData'),list=c('stanFit','mcmcCoda2'))
+    
+}
+
+}
+
+```
+
+```{r plotdata, include=FALSE}
+
+load('local/thresholddata.RData')
+     
+if (processdata>0){
+    
+  paramorder <- c('p','q','m','S','Z','w','k')
+  allsamples <- array(0,dim=c(3,7,10008))
+  for (expt in 1:3){
+    load(file=paste0('local/E1mod',expt,'.RData'))
+    p <- NULL
+    q <- NULL
+    m <- NULL
+    S <- NULL
+    Z <- NULL
+    w <- NULL
+    k <- NULL
+    for (i in 1:length(mcmcCoda2)){
+      p <- c(p,mcmcCoda2[[i]][,23])  
+      q <- c(q,mcmcCoda2[[i]][,24])  
+      m <- c(m,mcmcCoda2[[i]][,25])  
+      S <- c(S,mcmcCoda2[[i]][,26])  
+      Z <- c(Z,mcmcCoda2[[i]][,27])  
+      w <- c(w,mcmcCoda2[[i]][,28])  
+      k <- c(k,mcmcCoda2[[i]][,29])  
+    }        
+    p <- p + q
+allsamples[expt,1,] <- p
+allsamples[expt,2,] <- q
+allsamples[expt,3,] <- m
+allsamples[expt,4,] <- S
+allsamples[expt,5,] <- Z
+allsamples[expt,6,] <- w
+allsamples[expt,7,] <- k
+
+  }
+# meanparams <- 10^apply(log10(allsamples),1:2,mlv,method='meanshift')
+meanparams <- 10^apply(log10(allsamples),1:2,mean)
+# meanparams[2:3,5] <- meanparams[2:3,5]*100
+  
+pdf('Figures/modelparams.pdf',width=12,height=8)
+
+collist <- c('black','cornflowerblue','darkred')
+
+par(pty="s",mfcol=c(2,4))
+
+ticklocsx <- seq(-18,18,6)
+ticklabelsx <- c('1/8','1/4','1/2',1,2,4,8)
+ticklocsy <- seq(0,1,0.2)
+ticklabelsy <- ticklocsy
+
+for (param in 1:7){
+  
+  plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-18,18), ylim=c(0,1))  
+  axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)    
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab=paramorder[param], col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+
+  for (expt in 1:3){
+    
+    svals <- 20*log10(allsamples[expt,param,])
+    a <- density(svals)
+    a$y <- a$y/max(a$y)
+    lines(a$x,a$y,col=collist[expt])    
+    
+    lines(20*log10(meanparams[expt,c(param,param)]),c(0,1),col=collist[expt])
+  }
+  
+}
+
+dev.off()
+
+
+pedlist <- -12:39
+pedlevelsC <- 10^(pedlist/20)
+pedlevelsC[1] <- 0
+allpred <- array(0,dim=c(3,4,length(pedlist)))
+
+for (expt in 1:3){
+  for (cond in 1:4){
+    for (pedlev in 1:length(pedlist)){
+      allpred[expt,cond,pedlev] <- discriminate(meanparams[expt,],pedlevelsC[pedlev],cond)
+    }
+  }
+}
+allpreddB <- 20*log10(allpred)
+
+pdf('Figures/dippers.pdf',width=12,height=5)
+
+collist <- c('red','blue','orange','darkgreen')
+
+ticklocsx <- seq(-12,36,6)
+ticklabelsx <- c(0,0.5,1,2,4,8,16,32,64)
+ticklocsy <- seq(-12,36,6)
+ticklabelsy <- c(0.25,0.5,1,2,4,8,16,32,64)
+
+par(pty="s",mfcol=c(1,3))  # make axis square
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,39))   
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main='Achromatic')
+
+pedcontrasts <- seq(-12,30,6)
+
+for (cond in 1:4){
+  arrows(pedcontrasts,meanthresh[1,cond,],pedcontrasts,meanthresh[1,cond,]+SEthresh[1,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)
+ arrows(pedcontrasts,meanthresh[1,cond,],pedcontrasts,meanthresh[1,cond,]-SEthresh[1,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)  
+  # lines(pedcontrasts,meanthresh[1,cond,],col=collist[cond],lwd=2)
+  lines(pedlist,allpreddB[1,cond,],col=collist[cond],lwd=2)
+  points(pedcontrasts,meanthresh[1,cond,],pch=16,col=collist[cond],cex=1.5)
+}
+legend(-12,36,c('Monocular','Binocular','Half-bin','Dichoptic'),pch=16,col=collist,box.lwd=2,cex=1.5)
+
+
+par(pty="s")  # make axis square
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,39))  
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)    
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main='Red/Green')
+
+pedcontrasts <- c(-12,seq(0,36,6))
+
+for (cond in 1:4){
+  arrows(pedcontrasts,meanthresh[3,cond,],pedcontrasts,meanthresh[3,cond,]+SEthresh[3,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)
+ arrows(pedcontrasts,meanthresh[3,cond,],pedcontrasts,meanthresh[3,cond,]-SEthresh[3,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)  
+ # lines(pedcontrasts,meanthresh[3,cond,],col=collist[cond],lwd=2)
+  lines(pedlist,allpreddB[3,cond,],col=collist[cond],lwd=2)
+  points(pedcontrasts,meanthresh[3,cond,],pch=16,col=collist[cond],cex=1.5)
+}
+
+
+par(pty="s")  # make axis square
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,39))   
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main='Blue/Yellow')
+
+for (cond in 1:4){
+  arrows(pedcontrasts,meanthresh[2,cond,],pedcontrasts,meanthresh[2,cond,]+SEthresh[2,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)
+ arrows(pedcontrasts,meanthresh[2,cond,],pedcontrasts,meanthresh[2,cond,]-SEthresh[2,cond,],col=collist[cond],angle=90,length=0.02,lwd=2)  
+ # lines(pedcontrasts,meanthresh[2,cond,],col=collist[cond],lwd=2)
+  lines(pedlist,allpreddB[2,cond,],col=collist[cond],lwd=2)
+  points(pedcontrasts,meanthresh[2,cond,],pch=16,col=collist[cond],cex=1.5)
+}
+
+dev.off()
+  
+}
+
+summation <- meanthresh[,1,1] - meanthresh[,2,1]
+
+```
+
+```{r plotexampledips, include=FALSE}
+
+if (processdata>0){
+
+mkgrating <- function(regionsize, f, o, p, c){
+# ported from the Matlab function, originally by Tim Meese
+# generates a single component sine wave grating using the following inputs:
+  # regionsize is the width of the stimulus
+  # f is spatial frequency in cycles per image
+  # o is orientation in degrees
+  # p is phase in degrees relative to the centre of the image
+  # c is contrast
+
+p <- p*(pi/180)   # convert phase from degrees to radians
+o <- o*(pi/180)   # convert orientation from degrees to radians
+f <- f/regionsize # scale frequency by image size
+x0 <- (regionsize+1)/2  # locate centre of image
+y0 <- x0
+
+u <- f * cos(o) * 2*pi
+v <- f * sin(o) * 2*pi
+
+gridout <- meshgrid(1:regionsize,1:regionsize)   # generate x and y coordinate systems, requires the pracma package
+xx <- gridout$X
+yy <- gridout$Y
+
+output <- matrix(0,nrow=regionsize,ncol=regionsize)
+output <- (c * sin(u * (xx-x0) + v*(yy-y0) + p))
+
+return(output)}
+make_soft_window <- function(W,H,D=0.9){
+  # Mark's function to make sine-wave gratings, ported from Matlab
+  # W is width (in pixels), H is height (in pixels)
+  # D is the diameter of the soft window at half height as a proportion of the width
+  
+  radius <- min(W*D/2,H*D/2)     # radius in pixels
+  L <- 2*(min(W/2,H/2) - radius) # blur half-cycle
+  X1 <- seq(-L/2,L/2)
+  
+  X <- (1:W) - (W/2)
+  Y <- (1:H) - (H/2)
+  xx <- matrix(rep(X,H),nrow=H,ncol=W,byrow=TRUE)
+  yy <- t(matrix(rep(Y,W),nrow=W,ncol=H,byrow=TRUE))
+  
+  mask <- (xx^2 + yy^2)
+  mask[mask<=(radius^2)] <- 1
+  mask[mask>(radius^2)] <- 0
+  
+  WinKernel <- cos(X1*pi/L)  # half-cycle cosine
+  convkernW <- (1:W)*0
+  convkernW[(1+(W/2)-length(X1)/2):((W/2)+length(X1)/2)] <- WinKernel
+  convkernH <- (1:H)*0
+  convkernH[(1+(H/2)-length(X1)/2):((H/2)+length(X1)/2)] <- WinKernel
+  cH <- t(apply(mask,2,convolve,convkernH))
+  cH <- cH[,c((1+H/2):H,1:(H/2))]
+  cW <- apply(mask,1,convolve,convkernW)
+  cW <- cW[c((1+W/2):W,1:(W/2)),]
+  mask <- cH * cW
+  
+  mask <- mask/max(mask)
+  
+  return(mask)}
+
+  window <- make_soft_window(256,256)
+  grating <- mkgrating(256,3,90,0,1)
+  stim1 <- (1+(0.5*window*grating))/2
+  stim2 <- (1+(0.25*window*grating))/2
+  stim3 <- (1+(0.75*window*grating))/2
+  
+      pdf(paste0('Figures/exampledips.pdf'),width=12,height=6.5)
+  
+par(mfrow=c(1,2))
+
+  plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(0,4), ylim=c(0,4))  
+    
+ticklocsx <- seq(0.5,3.5,1)
+ticklabelsx <- c('Left eye','Right eye','Left eye','Right eye')
+ticklocsy <- c(0.5,1.38,1.62,2.5,3.5)
+ticklabelsy <- c('Dichoptic','binocular','Half-','Binocular','Monocular')
+
+  mtext(text = c('Pedestal only','Pedestal + Target'), cex=1.5, side = 3, at=c(1,3), line=0)  
+  mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0)   
+  mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0, las=1)
+
+
+  polygon(c(0,4,4,0),c(0,0,4,4),border=NA,col=rgb(0.5,0.5,0.5))
+  
+  rasterImage(stim1,0.2,3.2,0.8,3.8)
+  rasterImage(stim1,0.2,2.2,0.8,2.8)
+  rasterImage(stim1,1.2,2.2,1.8,2.8)
+  rasterImage(stim1,0.2,1.2,0.8,1.8)
+  rasterImage(stim1,1.2,1.2,1.8,1.8)
+  rasterImage(stim1,1.2,0.2,1.8,0.8)
+
+  rasterImage(stim3,2.2,3.2,2.8,3.8)
+  rasterImage(stim3,2.2,2.2,2.8,2.8)
+  rasterImage(stim3,3.2,2.2,3.8,2.8)
+  rasterImage(stim3,2.2,1.2,2.8,1.8)
+  rasterImage(stim1,3.2,1.2,3.8,1.8)
+  rasterImage(stim2,2.2,0.2,2.8,0.8)
+  rasterImage(stim1,3.2,0.2,3.8,0.8)
+   
+  lines(c(0,4),c(0,0),lwd=3)
+  lines(c(0,4),c(4,4),lwd=3)
+  lines(c(0,0),c(0,4),lwd=3)
+  lines(c(4,4),c(0,4),lwd=3)
+  
+  lines(c(0,4),c(1,1),lwd=1.5)
+  lines(c(0,4),c(2,2),lwd=1.5)
+  lines(c(0,4),c(3,3),lwd=1.5)
+  
+  lines(c(1,1),c(0,4),lwd=1.5)
+  lines(c(2,2),c(0,4),lwd=3)
+  lines(c(3,3),c(0,4),lwd=1.5)
+  
+  
+collist <- c('red','blue','orange','darkgreen')
+
+ticklocsx <- seq(-12,36,6)
+ticklabelsx <- c('0','1/2','1','2','4','8','16','32','64')
+ticklocsy <- seq(-12,36,6)
+ticklabelsy <- c('1/4','1/2','1','2','4','8','16','32','64')
+
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,36))   
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0)     
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+
+pedlist <- -12:36
+pedlevelsC <- 10^(pedlist/20)
+pedlevelsC[1] <- 0
+exampledip <- array(0,dim=c(4,length(pedlist)))
+  for (cond in 1:4){
+    for (pedlev in 1:length(pedlist)){
+      exampledip[cond,pedlev] <- discriminate(c(7.8,6.5,1.3,1,0.1,1,0.2),pedlevelsC[pedlev],cond)
+    }
+  }
+
+exampledipdB <- 20*log10(exampledip)
+
+
+for (cond in 1:4){
+  lines(pedlist,exampledipdB[cond,],col=collist[cond],lwd=3)
+}
+
+legend(-12,36,c('Monocular','Binocular','Half-binocular','Dichoptic'),lwd=3,col=collist,box.lwd=2,cex=1.5)
+  
+  
+}
+
+```
+
+```{r plotMCS, include=FALSE}
+
+  load('local/MCSdata.RData')
+slopematrix <- 10^(apply(log10(slopematrix),c(2,3),mean))
+slopematrix <- round(slopematrix,digits=2)
+
+if (processdata>0){
+
+  propcorr <- apply(MCSpropcorr,2:3,mean)
+  contrastsdB <- contrastsdB[1,,]
+  
+ticklocsx <- seq(-12,42,6)
+ticklabelsx <- c('1/4','1/2','1','2','4','8','16','32','64','128')
+ticklocsy <- seq(0,100,25)
+ticklabelsy <- ticklocsy
+
+titlelist <- c('(a) Achromatic target','(b) R/G target','(c) B/Y target','(d) Threshold elevation','(e) Psychometric slope')
+
+    pdf(paste0('Figures/MCSdata.pdf'),width=12,height=8)
+  
+    layout(matrix(c(1,1,2,2,3,3,0,4,4,5,5,0),2,6,byrow=TRUE))
+  
+  for (cond in 1:3){
+
+  par(pty="s")
+  
+  plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,42), ylim=c(0,100))  
+  axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+  axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+  mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.5)     # add the tick labels
+  mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+  title(xlab="Target contrast (%)", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)    # titles for axes
+  title(ylab="Percent correct", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
+  title(main=titlelist[cond],cex.main=2)
+  
+  lines(c(-12,42),c(50,50),lty=2)
+  
+  lines(contrastsdB[cond,],propcorr[cond,],lwd=3)
+  points(contrastsdB[cond,],propcorr[cond,],pch=21,lwd=3,cex=2,bg='black')
+  
+  lines(contrastsdB[cond+3,],propcorr[cond+3,],lwd=3)
+  points(contrastsdB[cond+3,],propcorr[cond+3,],pch=21,lwd=3,cex=2,col='black',bg='white')
+
+  lines(contrastsdB[cond+6,],propcorr[cond+6,],lwd=3)
+  points(contrastsdB[cond+6,],propcorr[cond+6,],pch=21,lwd=3,cex=2,col='red',bg='green')
+
+  lines(contrastsdB[cond+9,],propcorr[cond+9,],lwd=3)
+  points(contrastsdB[cond+9,],propcorr[cond+9,],pch=21,lwd=3,cex=2,col='cornflowerblue',bg='gold')
+  
+  # text(18,10,paste(ntrials[1],'trials/level'),pos=4)
+  
+  legend(-2,40,c('Target only','Achromatic mask','R/G mask','B/Y mask'), pch=21, col=c('black','black','red','cornflowerblue'),pt.cex=2,cex=1.5,pt.lwd=3,pt.bg=c('black','white','green','gold'),box.lwd=2)
+  
+}
+
+  par(pty="s")
+
+plotlims <- c(0.5,3.5,0.5,3.5)  # define the x and y limits of the plot (minx,maxx,miny,maxy)
+ticklocs <- seq(1,3)    # locations of tick marks on x axis
+ticklabels <- c('ACH','R/G','B/Y')
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=plotlims[1:2], ylim=plotlims[3:4])
+axis(1, at=ticklocs, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocs, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabels, side = 1, at=ticklocs,line=0.5) 
+mtext(text = ticklabels, side = 2, at=ticklocs, line=0.2, las=1) 
+title(xlab="Target", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)    # titles for axes
+title(ylab="Mask", col.lab=rgb(0,0,0), line=2.5, cex.lab=1.5)
+title(main=titlelist[4],cex.main=2)
+
+thdelev <- apply(thdelev,c(2,3),mean)
+
+ramp2 <- colorRamp(c("white","cornflowerblue"))  # create a ramp from one colour to another
+colmatrix2 <- rgb(ramp2(seq(0, 1, length = 101)), max = 255)
+image(1:3,1:3,thdelev,zlim=c(0,30),col=colmatrix2,add=TRUE,useRaster=FALSE)
+
+thdfactor <- round(10^(thdelev/20),digits=2)
+counter <- 0
+for (x in 1:3){
+  for (y in 1:3){
+    text(x,y,thdfactor[x,y],cex=1.6)
+  }
+}
+
+
+par(pty="s")
+
+plotlims <- c(0.5,3.5,0.5,3.5)  # define the x and y limits of the plot (minx,maxx,miny,maxy)
+ticklocs <- seq(1,3)    # locations of tick marks on x axis
+ticklabels <- c('ACH','R/G','B/Y')
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=plotlims[1:2], ylim=plotlims[3:4])
+axis(1, at=ticklocs, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocs, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabels, side = 1, at=ticklocs,line=0.5) 
+mtext(text = ticklabels, side = 2, at=ticklocs, line=0.2, las=1) 
+title(xlab="Target", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)    # titles for axes
+title(ylab="Mask", col.lab=rgb(0,0,0), line=2.5, cex.lab=1.5)
+title(main=titlelist[5],cex.main=2)
+
+ramp2 <- colorRamp(c("white","darkgreen"))  # create a ramp from one colour to another
+colmatrix2 <- rgb(ramp2(seq(0, 1, length = 101)), max = 255)
+image(1:3,1:3,slopematrix,zlim=c(0,8),col=colmatrix2,add=TRUE,useRaster=FALSE)
+
+counter <- 0
+for (x in 1:3){
+  for (y in 1:3){
+    text(x,y,slopematrix[x,y],cex=1.6)
+  }
+}
+
+  dev.off()
+
+  
+}
+
+```
+  
+```{r plotindividual, include=FALSE}
+
+# plot individual participant data for appendices
+
+if (processdata>0){
+  
+load('local/thresholddata.RData')
+ 
+pdf('Figures/individualdippers.pdf',width=12,height=12)
+par(mfrow=c(3,3))  
+
+collist <- c('red','blue','orange','darkgreen')
+
+ticklocsx <- seq(-12,36,6)
+ticklabelsx <- c(0,0.5,1,2,4,8,16,32,64)
+ticklocsy <- seq(-12,36,6)
+ticklabelsy <- c(0.25,0.5,1,2,4,8,16,32,64)
+
+for (p in 1:3){
+
+par(pty="s")  # make axis square
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,39))   
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main=paste0('(',letters[(3*(p-1)+1)],')  P',p,': Achromatic'),cex.main=2)
+
+pedcontrasts <- seq(-12,30,6)
+
+for (cond in 1:4){
+  lines(pedcontrasts,allthresh[p,1,cond,],col=collist[cond],lwd=2)
+  points(pedcontrasts,allthresh[p,1,cond,],pch=16,col=collist[cond],cex=1.5)
+}
+
+if (p==1){legend(-12,36,c('Monocular','Binocular','Half-bin','Dichoptic'),pch=16,col=collist,box.lwd=2,cex=1.5)}
+
+
+par(pty="s")  # make axis square
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,39))  
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)    
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main=paste0('(',letters[(3*(p-1)+2)],')  P',p,': Red/Green'),cex.main=2)
+
+pedcontrasts <- c(-12,seq(0,36,6))
+
+for (cond in 1:4){
+  lines(pedcontrasts,allthresh[p,3,cond,],col=collist[cond],lwd=2)
+  points(pedcontrasts,allthresh[p,3,cond,],pch=16,col=collist[cond],cex=1.5)
+}
+
+
+par(pty="s")  # make axis square
+plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,36), ylim=c(-12,39))   
+axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
+mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+title(xlab="Pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(ylab="Threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(main=paste0('(',letters[(3*(p-1)+3)],')  P',p,': Blue/Yellow'),cex.main=2)
+
+for (cond in 1:4){
+  lines(pedcontrasts,allthresh[p,2,cond,],col=collist[cond],lwd=2)
+  points(pedcontrasts,allthresh[p,2,cond,],pch=16,col=collist[cond],cex=1.5)
+}
+
+}
+
+dev.off()
+
+
+load('local/MCSdata.RData')
+slopematrix <- 10^(apply(log10(slopematrix),c(2,3),mean))
+slopematrix <- round(slopematrix,digits=2)
+contrastsdB <- contrastsdB[1,,]
+
+titlelist <- c('(a)  P1: Achromatic target','(b)  P1: R/G target','(c)  P1: B/Y target','(d)  P4: Achromatic target','(e)  P4: R/G target','(f)  P4: B/Y target','(g)  P5: Achromatic target','(h)  P5: R/G target','(i)  P5: B/Y target')
+
+ticklocsx <- seq(-12,42,6)
+ticklabelsx <- c('1/4','1/2','1','2','4','8','16','32','64','128')
+ticklocsy <- seq(0,100,25)
+ticklabelsy <- ticklocsy
+
+pdf('Figures/individualMCS.pdf',width=12,height=12)
+par(mfrow=c(3,3))  
+
+for (p in 1:3){
+  for (cond in 1:3){
+
+  par(pty="s")
+  
+  plot(x=NULL,y=NULL,axes=FALSE, ann=FALSE, xlim=c(-12,42), ylim=c(0,100))  
+  axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
+  axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
+  mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.5)     # add the tick labels
+  mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
+  title(xlab="Target contrast (%)", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)    # titles for axes
+  title(ylab="Percent correct", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
+  title(main=titlelist[3*(p-1)+cond],cex.main=2)
+  
+  lines(c(-12,42),c(50,50),lty=2)
+  
+  lines(contrastsdB[cond,],MCSpropcorr[p,cond,],lwd=3)
+  points(contrastsdB[cond,],MCSpropcorr[p,cond,],pch=21,lwd=3,cex=2,bg='black')
+  
+  lines(contrastsdB[cond+3,],MCSpropcorr[p,cond+3,],lwd=3)
+  points(contrastsdB[cond+3,],MCSpropcorr[p,cond+3,],pch=21,lwd=3,cex=2,col='black',bg='white')
+
+  lines(contrastsdB[cond+6,],MCSpropcorr[p,cond+6,],lwd=3)
+  points(contrastsdB[cond+6,],MCSpropcorr[p,cond+6,],pch=21,lwd=3,cex=2,col='red',bg='green')
+
+  lines(contrastsdB[cond+9,],MCSpropcorr[p,cond+9,],lwd=3)
+  points(contrastsdB[cond+9,],MCSpropcorr[p,cond+9,],pch=21,lwd=3,cex=2,col='cornflowerblue',bg='gold')
+  
+ 
+if (p==1 & cond==1){legend(-2,40,c('Target only','Achromatic mask','R/G mask','B/Y mask'), pch=21, col=c('black','black','red','cornflowerblue'),pt.cex=2,cex=1.5,pt.lwd=3,pt.bg=c('black','white','green','gold'),box.lwd=2)}
+  
+  }}
+
+
+}
+
+```
+
 
 # Abstract
 
 # Introduction
 
+The process by which the brain combines independent inputs is of fundamental importance for understanding sensory perception. Binocular vision is a useful test-case for determining the general principles involved in neural signal combination, as our brains combine the inputs from the left and right eyes to provide binocular single vision. In recent years our understanding has been facilitated by the development of binocular gain control models that provide a framework to interpret empirical data across multiple techniques, including psychophysics [@Meese2006], EEG [@Baker2017], fMRI [@Moradi2009] and pupillometry [@Segala2023]. However, the majority of this work has used achromatic (black and white) stimuli; we know comparatively little about how chromatic signals are combined binocularly, or about how signals in different ocular and chromatic channels interact. In this study we use psychophysical detection and discrimination paradigms to explore binocular interactions in the chromatic pathways.
 
+A useful framework for understanding binocular signal processing is the two-stage gain control model of binocular combination introduced by @Meese2006. This model features interocular suppression between monocular channels, followed by binocular summation. The model accounts well for the pattern of contrast discrimination ('dipper') functions for four distinct ocular configurations [see also @Georgeson2016], illustrated in Figure \@ref(fig:exampledips). In the monocular condition, participants must discriminate between stimuli of two contrasts (a 'pedestal', and a 'pedestal plus target') that are both presented to one eye, whilst the other eye views mean luminance. In the binocular condition, the same stimuli are shown to both eyes. In the half-binocular condition the pedestal is shown to both eyes, but the target increment shown only to one eye. Finally, the dichoptic condition involves presenting the pedestal to one eye, and the target increment to the other eye. 
 
+```{r exampledips, fig.cap="Illustration of stimulus conditions (left) and example dipper functions (right).", fig.align="center", echo=FALSE}
+
+knitr::include_graphics('Figures/exampledips.pdf')
+
+```
+
+The detailed pattern of results across these four conditions is complex, and for achromatic stimuli has several distinctive features that have been replicated in multiple studies. At low pedestal contrasts, the binocular condition yields lower thresholds than the monocular condition owing to binocular summation [@Baker2018; @Campbell1965]. However at high pedestal contrasts the 'handle' regions of the dipper functions for these conditions converge: a consequence of interocular suppression compensating for the increased excitation during binocular stimulation [@Legge1984; @Maehara2005]. The half-binocular condition avoids confounding the number of eyes seeing the target with the number of eyes seeing the pedestal [@Meese2006]. The pedestal is always binocular in this condition, whereas the target increment is monocular, and thresholds are consistently higher than in the binocular condition across the full range of pedestal contrasts. This demonstrates that binocular summation occurs across the full contrast range, when the pedestal ocularity is appropriately controlled. Finally, the dichoptic condition produces extremely strong masking of the target, such that when the pedestal is visible, the target must equal or exceed its contrast in order to be detectable [@Legge1979; @Maehara2005; @Baker2007b].
+
+At the output of the human retina, visual signals are split into three chromatic pathways. The sum of long- and medium-wavelength cone outputs (L+M) transmits luminance information, and is likely responsible for the binocular combination effects previously studied using achromatic stimuli (see above). The difference of long- and medium-wavelength cone outputs (L-M) is responsive to chromatic stimuli modulating along a red/green axis in colour space. Finally the short wavelength cone outputs (S-(L+M)) code chromatic stimuli modulating along a blue/yellow axis. There has not yet been a detailed investigation of binocular contrast discrimination in either of these chromatic pathways, however there is reason to believe they may differ from the achromatic pathway. At detection threshold, binocular summation is greater for chromatic versus achromatic stimuli [@Simmons2005], implying a more linear initial stage of processing. For cross-orientation masking, there are differences in the magnitude of masking between chromatic (red/green) and achromatic stimuli [@Kim2013; @Medina2009], as well as differences in their temporal dynamics [@Kim2015]. There are also interactions between chromatic and achromatic pathways both within [@Chen2000] and between [@Mullen2014; @Kingdom2015] the eyes, yet these have not been fully explored for arrangements where the target and mask have the same orientation. Finally, the neurophysiological underpinnings of colour vision are distinct from the achromatic system. In primary visual cortex (V1), chromatic signals are processed in 'blob' regions that are revealed by cytochrome oxidase staining [@Horton1981]. The blob regions appear to be largely monocular [@Livingstone1984], suggesting that binocular combination for chromatic stimuli might occur later than for achromatic stimuli and be subject to different constraints.
+
+Strong interocular normalization is well-established when using DC-balanced periodic stimuli such as sine-wave gratings [@Meese2006; @Baker2017; @Moradi2009]. However there is some evidence that binocular combination is more linear for luminance increments [@Levelt1965; @Anstis1998], particularly against a dark background [@Baker2012]. Our recent work has extended this finding to flickering discs of luminance, which are DC-balanced across time [@Segala2023]. Steady-state EEG responses from early visual cortex and psychophysical contrast matching data were both consistent with weak interocular suppression when using this stimulus arrangement, indicating that binocular combination rules may differ for temporal contrast. 
+
+The main aim of the present study is to characterise binocular signal combination for chromatic stimuli, and for temporal modulations of luminance. We also aimed to investigate interocular suppression between chromatic and achromatic pathways. We therefore preregistered a series of psychophysical experiments (see: [https://osf.io/3vdga/](https://osf.io/3vdga/)). In Experiment 1 we replicate the four key pedestal masking conditions of @Meese2006 described above for achromatic grating stimuli, and extend this to both red/green and blue/yellow isoluminant chromatic stimuli. In Experiment 2 we explore dichoptic masking within and between these stimuli. Experiment 3 repeats the achromatic condition from the first experiment, but using a temporally modulated disc rather than sine-wave gratings. We take a Bayesian approach to data analysis and modelling; by fitting a hierarchical version of the two-stage gain control model [@Meese2006] we compare posterior parameter distributions to understand how model parameters such as the weight of interocular suppression vary across visual pathways.
 
 # Materials & Methods
 
 ## Participants
 
-All four experiments were completed by the first author (DHB) and two other participants, who differed for each experiment. Written informed consent was provided before data collection began, and all procedures were approved by the ethics committee of the Department of Psychology at the University of York.
+All experiments were completed by the first author (DHB) and two other participants, who differed for each experiment. Written informed consent was obtained before data collection began, and all procedures were approved by the ethics committee of the Department of Psychology at the University of York (ID number 2202).
 
 ## Apparatus & stimuli
 
-In Experiments 1 and 2, the stimuli were horizontal sinusoidal gratings with a spatial frequency of 1c/deg. The gratings were windowed by a raised cosine envelope with a diameter of 3 degrees. Spatial phase, relative to a central fixation cross, was randomised on each trial across the four cardinal phases. In the achromatic conditions, the sine-wave modulated all three colour channels equally. In the L-M condition, we generated isoluminant stimuli for each participant (see Procedures) designed to maximise contrast between L and M cones, whilst keeping S cone activity constant. In the (L+M)-S condition, the isoluminant stimuli maximised S-cone contrast. Stimuli were converted from cone space to monitor RGB coordinates using the monitor spectral readings and the Stockman-Sharpe 2 degree cone fundamentals [@Stockman2000].
-
-The stimuli in Experiments 3 and 4 were temporal modulations of luminance and colour, using the same raised cosine envelope as described above, but with no further spatial modulation. The stimuli counterphase flickered sinusoidally at 4Hz, along the same axes of luminance and colour as described for Experiments 1 and 2.
-
-In all experiments, we displayed a binocular fusion lock, consisting of three concentric rings of small square elements with random colour. A black central fixation cross was also displayed throughout.
+In Experiments 1 and 2, the stimuli were horizontal sinusoidal gratings with a spatial frequency of 1c/deg. The gratings were windowed by a raised cosine envelope with a diameter of 3 degrees. Spatial phase, relative to a central fixation cross, was randomised on each trial across the four cardinal phases. In the achromatic conditions, the sine-wave modulated all three colour channels equally. In the L-M condition, we generated isoluminant stimuli for each participant (see Procedures) designed to maximise contrast between L and M cones, whilst keeping S cone activity constant. In the S-(L+M) condition, the isoluminant stimuli maximised S-cone contrast. Stimuli were converted from cone space to monitor RGB coordinates using the monitor spectral readings and the Stockman-Sharpe 2 degree cone fundamentals [@Stockman2000]. The stimuli in Experiment 3 were temporal modulations of luminance, using the same raised cosine envelope as described above, but with no further spatial modulation. The stimuli counterphase flickered sinusoidally at 4Hz. In all experiments, we displayed a binocular fusion lock, consisting of three concentric rings of small square elements with random colour. A black central fixation cross was also displayed throughout.
 
 All stimuli were presented on an Iiyama VisionMaster Pro 510 CRT monitor, with a refresh rate of 100Hz, and a resolution of 1024 x 768 pixels. The display was driven by a ViSaGe MkII stimulus generator (Cambridge Research Systems Ltd., Kent, UK) running in 42-bit colour mode (14 bits per colour channel). We presented stimuli to the left and right eyes independently using a four-mirror stereoscope with front-silvered mirrors. The display was luminance calibrated using a ColourCal photometer (Cambridge Research Systems), and gamma corrected by fitting a four-parameter gamma function to the output of each CRT gun. The maximum luminance was 87 cd/m$^2$. We also measured the spectral output of each phosphor using a Jaz spectroradiometer (Ocean Insight, Florida), and used these measurements to convert between LMS (cone) space and the monitor RGB coordinates.
+
+For convenience, we express stimulus contrast as a percentage of the maximum possible contrast that could be displayed on our system. For achromatic stimuli, the maximum contrast is 1, so this is equivalent to the standard Michelson contrast expressed as a percentage. For the isoluminant chromatic stimuli, the maximum displayable L-M (red/green) cone contrast was 0.1, and the maximum displayable S-(L+M) (blue/yellow) cone contrast was 0.88. So an L-M threshold of 50\% is a cone contrast of $0.5\times0.1 = 0.05$, and an S-(L+M) threshold of 50\% is a cone contrast of $0.5\times0.88 = 0.44$. The threshold values reported throughout can therefore be converted to cone contrast by a straightforward multiplicative transform.
 
 ## Procedure
 
 All experiments took place in a darkened room. Participants placed their heads in a chin rest mounted on a height-adjustable table, to which the stereoscope was also attached. The total optical viewing distance (including the light path through the mirrors) was XXcm, at which distance 1 degree of visual angle encompassed 48 pixels on the monitor.
 
-Before beginning primary data collection, each participant completed an isoluminance adjustment task. Stimuli were presented that counterphase flickered at 10Hz, defined about either the L-M or (L+M)-S plane in cone space. Participants used a trackball to dynamically adjust the angle of the stimulus to minimise the percept of flicker. Each participant completed ten such trials for each colour plane, and the average angle across repetition was taken as the isoluminant point, and used to generate stimuli for the main experiment for that participant. Settings were very similar across participants for the (L+M)-S direction, and varied somewhat more for the L-M direction (Figure?).
+Before beginning primary data collection, each participant in Experiments 1 and 2 completed an isoluminance adjustment task. Stimuli were presented that counterphase flickered at 5Hz, defined about either the L-M or S-(L+M) plane in cone space. Participants used a trackball to dynamically adjust the angle of the stimulus to minimise the percept of flicker. Each participant completed ten such trials for each colour plane, and the average angle across repetition was taken as the isoluminant point, and used to generate stimuli for the main experiment for that participant. Settings were very similar across participants for the S-(L+M) direction, and  somewhat more heterogeneous for the L-M direction (see Figure \@ref(fig:isofig)).
 
-*Figure here summarising the isoluminant data*
+```{r isofig, fig.cap="Isoluminance settings from all participants in Experiments 1 and 2. Panel (a) shows red/green and panel (b) shows blue/yellow settings that were subsequently used to generate stimuli in the main experiments. Within each panel, solid lines show the mean settings for each participant, and black curves show the range of possible stimuli displayed during the adjustment task.", fig.align="center", echo=FALSE}
 
-In Experiments 1 and 3, participants completed a two-interval-forced-choice (2IFC) contrast discrimination task.
+knitr::include_graphics('Figures/isosettings.pdf')
 
-In Experiments 2 and 3, participants completed a 2IFC dichoptic masking task. 
+```
+
+In Experiment 1, participants completed a two-interval-forced-choice (2IFC) contrast discrimination task. Stimuli were presented for 200ms, with an interstimulus interval of 400ms. Each interval was indicated by an auditory beep, and participants made their responses using a two-button trackball. Correct trials were indicated by a high pitched tone, and incorrect trials by a low pitched tone. Each block of the experiment tested a single pedestal contrast level, and lasted around 12 minutes. On each trial the target contrast level was determined by a 3-down-1-up staircase procedure. There were 8 interleaved staircases in total; four stimulus arrangements (see Figure \@ref(fig:exampledips)) by two target eye assignments. Each pedestal contrast was repeated 3 times by each participant, and the block order was randomised. The experiment lasted around 4 hours per participant for each chromatic condition, which took place over the course of several weeks. In total, the experiment consisted of `r nrow(ex1data)` trials (pooled across participants).
+
+In Experiment 2, participants completed a 2IFC dichoptic masking task. The stimuli and trial protocol were the same as for Experiment 1, except that the target contrast was chosen from a set of 10 possible values, determined in advance based on the data of Experiment 1. There were 12 possible conditions: baseline detection thresholds for achromatic, red/green and blue/yellow stimuli, and the nine possible factorial pairings obtained by assigning these conditions to be target and dichoptic mask stimuli. Mask contrasts were chosen to be approximately 16 times their (monocular) detection threshold, based on the data from Experiment 1. Each block of the experiment tested a single condition, and consisted of 200 trials. A high contrast example of the target stimulus was displayed at the foot of the screen throughout, so that there was no ambiguity about the target identity on a given block. Participants completed 10 repetitions of each condition (120 blocks of ~6 minutes each), lasting around 12 hours, for a total of `r nrow(ex2data)` trials (pooled across participants).
+
+In Experiment 3, the achromatic conditions from Experiment 1 were repeated using a flickering disc stimulus. The stimulus counterphase flickered at 4Hz, and was presented for 500ms (i.e. 2 full cycles of the temporal modulation). All other procedures were the same as for Experiment 1, and the experiment comprised a total of X trials (pooled across participants).
 
 ## Data analysis and computational modelling
 
-Psychometric functions from each experiment were fit with \emph{psignifit} 4 to estimate full posterior distributions for threshold and slope parameters via a Bayesian numerical integration method [@Schutt2016]. We also implemented a Bayesian hierarchical version of the two stage model of @Meese2006 using the Stan language [@Carpenter2017]. This used a Bernoulli distribution to model the trial-by-trial response data, and was fit separately to each chromatic condition of Experiments 1 and 3 (i.e. 6 model fits in total). The modelling primarily focuses on comparing posterior parameter distributions across conditions and experiments, rather than a model comparison approach. We generated over 1 million posterior samples for each model, and retained 10% of them for plotting.
+Psychometric functions from each experiment were fit using \emph{psignifit} 4 to estimate full posterior distributions for threshold and slope parameters via a Bayesian numerical integration method [@Schutt2016], fitting a cumulative Gaussian. We also implemented a Bayesian hierarchical version of the two stage model of @Meese2006 using the Stan language [@Carpenter2017]. This used a binomial generator function to model the proportion correct data at each target level, and was fit separately to each chromatic condition of Experiment 1, and the data of Experiment 3 (i.e. 4 model fits in total). The modelling primarily focuses on comparing posterior parameter distributions across conditions and experiments, rather than a model comparison approach. We generated over 1 million posterior samples for each model, and retained 10\% of them for plotting.
 
-## Data and code availability
+## Open science practices
 
-All experimental code, raw data and analysis scripts are available at: https://osf.io/3vdga/
+All experimental code, raw data and analysis scripts are available at: https://osf.io/3vdga/. The linked GitHub repository also contains a fully reproducible version of the manuscript. Note that we deviated slightly from the planned preregistration, in that we did not collect data for chromatic flickering discs, or for the cross-pathway dichoptic experiment using disc stimuli. This is because the grating data from Experiments 1 and 2, and the achromatic disc data from Experiment 3, were sufficient to address the questions we had wanted to answer from these experiments.
 
 # Results
 
 ## Experiment 1
 
+```{r dipregressions, echo=FALSE}
+
+regdata <- NULL
+regdata$thd <- meanthresh[1,2,5:8]
+regdata$ped <- seq(12,30,6)
+regdata <- as.data.frame(regdata)
+binregACH <- lm(thd ~ ped, data=regdata)
+
+regdata <- NULL
+regdata$thd <- meanthresh[3,2,5:8]
+regdata$ped <- seq(12,30,6)
+regdata <- as.data.frame(regdata)
+binregRG <- lm(thd ~ ped, data=regdata)
+
+regdata <- NULL
+regdata$thd <- meanthresh[2,2,5:8]
+regdata$ped <- seq(12,30,6)
+regdata <- as.data.frame(regdata)
+binregBY <- lm(thd ~ ped, data=regdata)
+
+regdata <- NULL
+regdata$thd <- meanthresh[1,4,5:8]
+regdata$ped <- seq(12,30,6)
+regdata <- as.data.frame(regdata)
+dichregACH <- lm(thd ~ ped, data=regdata)
+
+regdata <- NULL
+regdata$thd <- meanthresh[3,4,5:8]
+regdata$ped <- seq(12,30,6)
+regdata <- as.data.frame(regdata)
+dichregRG <- lm(thd ~ ped, data=regdata)
+
+regdata <- NULL
+regdata$thd <- meanthresh[2,4,5:8]
+regdata$ped <- seq(12,30,6)
+regdata <- as.data.frame(regdata)
+dichregBY <- lm(thd ~ ped, data=regdata)
+
+```
+
+Dipper functions from Experiment 1 are displayed in Figure \@ref(fig:dipperfig). Panel (a) shows the achromatic results, which replicate the key features from previous work. At detection threshold, binocular summation was a factor of `r round(10^(summation[1]/20),digits=2)` (`r round(summation[1],digits=2)`dB), consistent with previous reports. Pedestal masking functions follow the typical 'dipper' shape in all conditions, with a region of facilitation at low pedestal contrasts, and masking at higher contrasts. The monocular and binocular dipper handles converge at high contrasts, whereas the half-binocular thresholds remain above the binocular thresholds across the full range of pedestal contrasts. The dichoptic condition produced very high thresholds, with the rising portion of the dipper having a slope around 1 (regression slope of `r round(dichregACH$coefficients[2], digits=2)` across the highest 4 pedestal contrasts in log (dB) units).
+
+```{r dipperfig, fig.cap="Dipper functions from Experiment 1, averaged across three participants. Error bars show ±1SE across participants. Note that contrast values are expressed as a percentage of the maximum displayable contrast (see Procedures for details).", fig.align="center", echo=FALSE}
+
+knitr::include_graphics('Figures/dipperssimplex.pdf')
+
+```
+
+A similar pattern of results was observed for both the red/green and blue/yellow isoluminant stimuli (see Figure \@ref(fig:dipperfig)b,c). Summation at threshold was a factor of `r round(10^(summation[3]/20),digits=2)` (`r round(summation[3],digits=2)`dB) for the red/green targets, and a factor of `r round(10^(summation[2]/20),digits=2)` (`r round(summation[2],digits=2)`dB) for the blue/yellow targets, and so was marginally higher than for achromatic stimuli. The general character of the dipper functions was largely consistent with the achromatic results, though we observed shallower facilitation and weaker masking, especially for the blue/yellow stimuli. For example, the strongest facilitation in the binocular condition for achromatic stimuli was a factor of `r round(10^((meanthresh[1,2,1]-meanthresh[1,2,3])/20),digits=2)`, whereas it reduced to a factor of `r round(10^((meanthresh[3,2,1]-meanthresh[3,2,3])/20),digits=2)` for red/green stimuli and `r round(10^((meanthresh[2,2,1]-meanthresh[2,2,3])/20),digits=2)` for blue/yellow stimuli. The slope of the binocular dipper handle was `r round(binregACH$coefficients[2], digits=2)` for achromatic stimuli, `r round(binregRG$coefficients[2], digits=2)` for red/green stimuli, and `r round(binregBY$coefficients[2], digits=2)` for blue/yellow stimuli. Dichoptic masking remained as strong for the chromatic conditions as for the achromatic stimuli (regression slopes of `r round(dichregRG$coefficients[2], digits=2)` for red/green and `r round(dichregBY$coefficients[2], digits=2)` for blue/yellow). The pattern of results for individual participants was consistent with the averages, as shown in Figure \@ref(fig:individualdips).
+
+Modelling
+
+
+```{r params, fig.cap="Model parameters", fig.align="center", echo=FALSE}
+
+knitr::include_graphics('Figures/modelparams.pdf')
+
+```
+
 ## Experiment 2
+
+In Experiment 2 we focussed on the dichoptic condition at a single mask contrast, and measured full psychometric functions using the method of constant stimuli for all factorial pairings of target and mask chromaticity. The pooled results across three participants are shown in Figure \@ref(fig:MCSfig), and results for individual participants are available in Figure \@ref(fig:individualMCS). All conditions produced monotonically increasing psychometric functions (panels a-c), but the extent of masking was highly dependent on the relationship between the target and mask chromaticity.
+
+```{r MCSfig, fig.cap="Summary of data from Experiment 2. Panels (a-c) show psychometric functions for each condition, pooled across participants (600 trials per target contrast level). Panel (d) shows the average threshold elevation factor for each combination of target and mask stimulus. Panel (e) shows the geometric mean psychometric slope value for each masking condition in Weibull beta units.", fig.align="center", echo=FALSE}
+
+knitr::include_graphics('Figures/MCSdata.pdf')
+
+```
+
+Threshold elevation was greatest when the target and mask had the same chromaticity - notice that the psychometric function is shifted furthest to the right for the achromatic target with an achromatic mask (white and black circles in Figure \@ref(fig:MCSfig)a), for the red/green target with a red/green mask (red and green circles in Figure \@ref(fig:MCSfig)b), and for the blue/yellow target with a blue/yellow mask (blue and yellow circles in Figure \@ref(fig:MCSfig)c). Masking was weakest between achromatic masks/targets and chromatic masks/targets. Finally there was an intermediate level of masking between red/green and blue/yellow stimuli. This is summarised in Figure \@ref(fig:MCSfig)d, which represents threshold elevation for each combination of target and mask chromaticity. Note that the positive diagonal exhibits the highest values, and represents threshold elevation between targets and masks of the same chromaticity.
+
+We also calculated the slope of the psychometric function for each condition, converted to equivalent Weibull $\beta$ values. In the absence of a mask, the average slope was $\beta$ = `r round(10^(mean(log10(detslopes))),digits=2)`, which is typical for contrast detection tasks. Slopes became substantially steeper when the dichoptic mask matched the target in chromaticity (average $\beta$ = `r round(10^(mean(log10(c(slopematrix[1,1],slopematrix[2,2],slopematrix[3,3])))),digits=2)`). These 'super-steep' psychometric functions for dichoptic pedestal masking have been reported previously [@Meese2006; @Baker2013], and are observed for the first time here using chromatic stimuli (see diagonal values in Figure \@ref(fig:MCSfig)e). However we did not see such markedly steep functions for any of the cross-chromaticity masking conditions (average $\beta$ = `r round(10^(mean(log10(c(slopematrix[1,2],slopematrix[1,3],slopematrix[2,1],slopematrix[2,3],slopematrix[3,1],slopematrix[3,2])))),digits=2)` for the off-diagonal values).
 
 ## Experiment 3
 
-## Experiment 4
-
+In our final experiment, we again measured dipper functions, but this time for a temporally modulating luminance disc. This was motivated by our recent work [@Segala2023] that appeared to show increased binocular facilitation and reduced interocular suppression for flickering disc stimuli (relative to gratings), measured using EEG and a psychophysical matching paradigm. The pattern of dipper functions for a 4Hz flickering disc (see Figure X) was very similar to that observed for achromatic gratings (see Figure \@ref(fig:dipperfig)a), and the binocular summation ratio at threshold was also similar (a factor of). Fitting the same computational model to the disc data also generated an estimated weight of interocular suppression around 1. Data for individual participants are shown in Figure AX.
 
 # Discussion
 
+Across three psychophysical experiments, we have demonstrated that:
+
+- Binocular combination of isoluminant chromatic stimuli is similar to that for achromatic stimuli
+- Interocular suppression is strongest within a chromatic pathway, and weakest between achromatic and chromatic pathways
+- Binocular combination occurs similarly for temporal and temporal luminance modulations
+
+We now discuss the relationship to previous work, consider the likely physiological substrates of these effects and .
+
+Recent evidence indicates that the physiological substrate of interocular suppression may be neurons in layer 4 of primary visual cortex [@Dougherty2019]. Most cells in this layer are monocularly exciteable, in that their responses increase only by stimulation of their preferred eye. However, simultaneous stimulation of the non-preferred eye can modulate the response, usually in an inhibitory fashion, exactly as proposed by the two-stage model. In terms of perception, the consequence of this early suppression is to achieve 'ocularity invariance', whereby the perceived contrast of a stimulus viewed by one eye is equivalent to that of the same stimulus viewed by both eyes [@Baker2007]. Similar processes of invariance have also been reported using fMRI [@Moradi2009] and steady-state EEG [@Baker2017].
 
 
 # Conclusions
@@ -88,6 +1432,20 @@ Supported by BBSRC grant BB/V007580/1 awarded to DHB and ARW.
 
 # References
 
+<div id='refs'> </div>
 
+# Appendices
 
+\beginsupplement
 
+```{r individualdips, fig.cap="Individual participant data from Experiment 1.", fig.align="center", echo=FALSE}
+
+knitr::include_graphics('Figures/individualdippers.pdf')
+
+```
+
+```{r individualMCS, fig.cap="Individual participant data from Experiment 2.", fig.align="center", echo=FALSE}
+
+knitr::include_graphics('Figures/individualMCS.pdf')
+
+```
