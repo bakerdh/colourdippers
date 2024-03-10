@@ -102,7 +102,7 @@
 \title{Binocular integration of chromatic and luminance signals}
 \author{Daniel H. Baker, Kirralise J. Hansford, Federico G. Segala, Annie Y. Morsi,\\
 Rowan J. Huxley, Joel T. Martin, Maya Rockman \& Alex R. Wade}
-\date{2024-03-09}
+\date{Department of Psychology, University of York}
 
 \begin{document}
 \maketitle
@@ -176,7 +176,27 @@ In Experiment 3, the achromatic conditions from Experiment 1 were repeated using
 \hypertarget{data-analysis-and-computational-modelling}{%
 \subsection{Data analysis and computational modelling}\label{data-analysis-and-computational-modelling}}
 
-Psychometric functions from each experiment were fit using \emph{psignifit} 4 to estimate full posterior distributions for threshold and slope parameters via a Bayesian numerical integration method (Schütt et al., 2016), fitting a cumulative Gaussian. We also implemented a Bayesian hierarchical version of the two stage model of Meese et al. (2006) using the Stan language (Carpenter et al., 2017). This used a binomial generator function to model the proportion correct data at each target level, and was fit separately to each chromatic condition of Experiment 1, and the data of Experiment 3 (i.e.~4 model fits in total). The modelling primarily focuses on comparing posterior parameter distributions across conditions and experiments, rather than a model comparison approach. We generated over 1 million posterior samples for each model, and retained 10\% of them for plotting.
+Psychometric functions from each experiment were fit using \emph{psignifit} 4 to estimate threshold and slope parameters via a Bayesian numerical integration method (Schütt et al., 2016). A cumulative Gaussian was used as the underlying function, and we converted the slope estimates (\(\sigma\) parameters from the fitted Gaussians) to equivalent Weibull \(\beta\) values using the approximation \(\beta = 10.3/\sigma\).
+
+The two stage model of Meese et al. (2006) was fit to the threshold data from Experiments 1 and 3 using a simplex algorithm to minimise the error between the model and data. The model is defined by a series of equations:
+
+\(Stage1_L = \frac{C_L^m}{S + C_L + \omega C_R}\)
+
+\(Stage1_R = \frac{C_L^m}{S + C_R + \omega C_L}\)
+
+\(binsum = Stage1_L + Stage1_R\)
+
+\(binresp = \frac{binsum^p}{Z + binsum^q}\)
+
+where \(C_L\) and \(C_R\) are the contrasts displayed to the left and right eyes, and \(m\), \(S\), \(\omega\), \(p\), \(q\) and \(Z\) are free parameters in the model. A further free parameter, \(k\), represents additive internal noise, and is used to convert the model outputs to either d-prime or threshold values. Thresholds are defined when the following equality is satisfied:
+
+\(binresp_{target+pedestal} - binresp_{pedestal} = k\)
+
+and d-prime is defined as:
+
+\(d' = \frac{binresp_{target+pedestal} - binresp_{pedestal}}{k}\).
+
+We also implemented a Bayesian hierarchical version of the model using the Stan language (Carpenter et al., 2017). This used a binomial generator function to model the proportion correct data at each target level, and was fit simultaneously to all participants and each chromatic condition of Experiment 1. This modelling primarily focuses on examining posterior parameter distributions, rather than a model comparison approach. We generated over 1 million posterior samples for the model, and retained 10\% of them for plotting.
 
 \hypertarget{open-science-practices}{%
 \subsection{Open science practices}\label{open-science-practices}}
@@ -197,26 +217,26 @@ Dipper functions from Experiment 1 are displayed in Figure \ref{fig:dipperfig}. 
 
 }
 
-\caption{Dipper functions from Experiment 1, averaged across three participants. Error bars show ±1SE across participants. Note that contrast values are expressed as a percentage of the maximum displayable contrast (see Procedures for details).}\label{fig:dipperfig}
+\caption{Dipper functions from Experiment 1, averaged across three participants. Error bars show ±1SE across participants. Note that contrast values are expressed as a percentage of the maximum displayable contrast (see Procedures for details). Curves show...}\label{fig:dipperfig}
 \end{figure}
 
 A similar pattern of results was observed for both the red/green and blue/yellow isoluminant stimuli (see Figure \ref{fig:dipperfig}b,c). Summation at threshold was a factor of 1.71 (4.66dB) for the red/green targets, and a factor of 1.73 (4.77dB) for the blue/yellow targets, and so was marginally higher than for achromatic stimuli. The general character of the dipper functions was largely consistent with the achromatic results, though we observed shallower facilitation and weaker masking, especially for the blue/yellow stimuli. For example, the strongest facilitation in the binocular condition for achromatic stimuli was a factor of 2.63, whereas it reduced to a factor of 2.35 for red/green stimuli and 1.57 for blue/yellow stimuli. The slope of the binocular dipper handle was 0.52 for achromatic stimuli, 0.58 for red/green stimuli, and 0.34 for blue/yellow stimuli. Dichoptic masking remained as strong for the chromatic conditions as for the achromatic stimuli (regression slopes of 1.3 for red/green and 1.21 for blue/yellow). The pattern of results for individual participants was consistent with the averages, as shown in Figure \ref{fig:individualdips}.
 
-Modelling
+For consistency with previous work, we initially performed least-squares fits of the two-stage model (Meese et al., 2006) for each of the chromaticity experiments (7 free parameters per fit). The best model fits are shown in Figure \ref{fig:dipperfig}, and provide an excellent description of the data, with RMS errors between 1.37 and 1.59dB. We additionally implemented a hierarchical Bayesian version of the model in order to estimate full posterior parameter distributions. This model was fit simultaneously to the full trial-by-trial data from all participants and chromaticity experiments. Figure \ref{fig:bayesianmodel}a summarises the model behaviour, which displays the same pattern of dipper functions as we found empirically. Figure \ref{fig:bayesianmodel}b-h shows posterior distributions for each model parameter. Note in particular that the weight of interocular suppression overlaps 1 for each chromaticity experiment, consistent with the strong dichoptic masking observed in the threshold data.
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/modelparams} 
+{\centering \includegraphics{Figures/stanoutput} 
 
 }
 
-\caption{Model parameters}\label{fig:params}
+\caption{Model parameters}\label{fig:bayesianmodel}
 \end{figure}
 
 \hypertarget{experiment-2}{%
 \subsection{Experiment 2}\label{experiment-2}}
 
-In Experiment 2 we focussed on the dichoptic condition at a single mask contrast, and measured full psychometric functions using the method of constant stimuli for all factorial pairings of target and mask chromaticity. The pooled results across three participants are shown in Figure \ref{fig:MCSfig}, and results for individual participants are available in Figure \ref{fig:individualMCS}. All conditions produced monotonically increasing psychometric functions (panels a-c), but the extent of masking was highly dependent on the relationship between the target and mask chromaticity.
+In Experiment 2 we focussed on the dichoptic condition at a single mask contrast, and measured full psychometric functions using the method of constant stimuli for all factorial pairings of target and mask chromaticity. The pooled results across three participants are shown in Figure \ref{fig:MCSfig}, and results for individual participants are available in Figure \ref{fig:individualMCS}. All conditions produced monotonically increasing psychometric functions (panels a-c), but the extent of masking was highly dependent on the relationship between the target and mask chromaticity. Figure \ref{fig:MCSfig}d-f shows a two-dimensional representation of individual threshold and slope estimates (points), as well as the posterior density estimates for fits to the pooled data (ellipses).
 
 \begin{figure}
 
@@ -224,12 +244,12 @@ In Experiment 2 we focussed on the dichoptic condition at a single mask contrast
 
 }
 
-\caption{Summary of data from Experiment 2. Panels (a-c) show psychometric functions for each condition, pooled across participants (600 trials per target contrast level). Panel (d) shows the average threshold elevation factor for each combination of target and mask stimulus. Panel (e) shows the geometric mean psychometric slope value for each masking condition in Weibull beta units.}\label{fig:MCSfig}
+\caption{Summary of data from Experiment 2. Panels (a-c) show psychometric functions for each condition, pooled across participants (600 trials per target contrast level). Panels (d-f) show threshold and slope estimates for individual participants (points) and the boundary of the posterior density estimates for fits to the pooled data (ellipses). Panel (g) shows the average threshold elevation factor for each combination of target and mask stimulus. Panel (h) shows the geometric mean psychometric slope value for each masking condition in Weibull beta units.}\label{fig:MCSfig}
 \end{figure}
 
-Threshold elevation was greatest when the target and mask had the same chromaticity - notice that the psychometric function is shifted furthest to the right for the achromatic target with an achromatic mask (white and black circles in Figure \ref{fig:MCSfig}a), for the red/green target with a red/green mask (red and green circles in Figure \ref{fig:MCSfig}b), and for the blue/yellow target with a blue/yellow mask (blue and yellow circles in Figure \ref{fig:MCSfig}c). Masking was weakest between achromatic masks/targets and chromatic masks/targets. Finally there was an intermediate level of masking between red/green and blue/yellow stimuli. This is summarised in Figure \ref{fig:MCSfig}d, which represents threshold elevation for each combination of target and mask chromaticity. Note that the positive diagonal exhibits the highest values, and represents threshold elevation between targets and masks of the same chromaticity.
+Threshold elevation was greatest when the target and mask had the same chromaticity - notice that the psychometric function is shifted furthest to the right for the achromatic target with an achromatic mask (white and black circles in Figure \ref{fig:MCSfig}a), for the red/green target with a red/green mask (red and green circles in Figure \ref{fig:MCSfig}b), and for the blue/yellow target with a blue/yellow mask (blue and yellow circles in Figure \ref{fig:MCSfig}c). Masking was weakest between achromatic masks/targets and chromatic masks/targets. Finally there was an intermediate level of masking between red/green and blue/yellow stimuli. This is summarised in Figure \ref{fig:MCSfig}g, which represents threshold elevation for each combination of target and mask chromaticity. Note that the positive diagonal exhibits the highest values, and represents threshold elevation between targets and masks of the same chromaticity.
 
-We also calculated the slope of the psychometric function for each condition, converted to equivalent Weibull \(\beta\) values. In the absence of a mask, the average slope was \(\beta\) = 3.42, which is typical for contrast detection tasks. Slopes became substantially steeper when the dichoptic mask matched the target in chromaticity (average \(\beta\) = 5.38). These `super-steep' psychometric functions for dichoptic pedestal masking have been reported previously (Baker et al., 2013; Meese et al., 2006), and are observed for the first time here using chromatic stimuli (see diagonal values in Figure \ref{fig:MCSfig}e). However we did not see such markedly steep functions for any of the cross-chromaticity masking conditions (average \(\beta\) = 2.83 for the off-diagonal values).
+We also calculated the slope of the psychometric function for each condition, converted to equivalent Weibull \(\beta\) values. In the absence of a mask, the average slope was \(\beta\) = 3.42, which is typical for contrast detection tasks. Slopes became substantially steeper when the dichoptic mask matched the target in chromaticity (average \(\beta\) = 5.38). These `super-steep' psychometric functions for dichoptic pedestal masking have been reported previously (Baker et al., 2013; Meese et al., 2006), and are observed for the first time here using chromatic stimuli (see diagonal values in Figure \ref{fig:MCSfig}h). However we did not see such markedly steep functions for any of the cross-chromaticity masking conditions (average \(\beta\) = 2.83 for the off-diagonal values).
 
 \hypertarget{experiment-3}{%
 \subsection{Experiment 3}\label{experiment-3}}
