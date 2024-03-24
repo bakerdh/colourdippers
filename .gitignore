@@ -42,3 +42,6 @@ vignettes/*.pdf
 /local/
 # miscellaneous scripts
 /misc/
+
+.DS_Store
+

@@ -1,26 +1,26 @@
-function runMCScross
+function runflickerdippers
 
-% dichoptic conditions with method of constant stimuli
-%
 % single script to run colour dipper experiment
 % choose participant ID and which experiment to run
 % DHB 26/8/22
 % updated 25/9/22 to optimise contrast levels for each participant & condition
-% updated 2/1/23 to implement MCS
+% 28/1/22 this version to do flicker
 
 close all;
+
 % addpath(genpath('C:\Program Files\Cambridge Research Systems\CRS Toolbox for MATLAB')); 
 % cd('C:\Users\Daniel Baker\Documents\MATLAB\Psychtoolbox');
 % SetupPsychtoolbox;
 % cd('C:\Users\Daniel Baker\Documents\MATLAB\colourdippers');
 
-subj = menu('Select participant','P1','P4','P5','Test');
+subj = menu('Select participant','P1','P6','P7','Test');
 WaitSecs(0.5);
+expt = menu('Choose experiment','Achromatic','Red/Green','Blue/Yellow');
 
 useVSG = 1;
 useRTS = 0;   % this is glitchy so best avoided
 
-subnamelist = {'P1','P4','P5','XX'};
+subnamelist = {'P1','P6','P7','XX'};
 exptnamelist = {'AC','RG','BY'};
 
 E.exptpath = strcat(pwd, '\'); % Same as above, JTM
@@ -40,33 +40,21 @@ ST.npixelsperdegree = 48;
 ST.gratingsizedeg = 3;
 ST.gratingsizepix = ST.gratingsizedeg * ST.npixelsperdegree;
 ST.gausssigma = ST.npixelsperdegree;
-ST.SF = 1;
-ST.ncycles = ST.SF * ST.gratingsizedeg;
-ST.duration = 0.2;
+ST.SF = 0;
+ST.ncycles = 0;
+ST.duration = 0.5;
 ST.ISI = 0.4;
 ST.postresponseduration = 0.6;
-ST.phaselist = [0 90 180 270];
+ST.phaselist = [1 -1];
+ST.TF = 4;
 
-E.pedcontrastsdB = [0 0 0 24 24 24 36 36 36 36 36 36];
+E.pedcontrastsdB(1,:) = -12:6:30;
+E.pedcontrastsdB(2,:) = -6:6:36;    % for the colour conditions this is % of maximum displayable cone contrast
+E.pedcontrastsdB(3,:) = -6:6:36;
 E.pedcontrastsC = (10.^(E.pedcontrastsdB./20))./100;
-E.pedcontrastsC(1:3) = 0;
-E.pedtype = [0 0 0 1 1 1 2 2 2 3 3 3];
-E.targettype = [1 2 3 1 2 3 1 2 3 1 2 3];
+E.pedcontrastsC(:,1) = 0;
 
-E.targetlevelsdB(1,:) = -8:2:10;  % achromatic target detection
-E.targetlevelsdB(2,:) = 4:2:22;   % red/green target detection
-E.targetlevelsdB(3,:) = 4:2:22;   % blue/yellow target detection
-E.targetlevelsdB(4,:) = 16:2:34;  % achromatic target achromatic mask
-E.targetlevelsdB(5,:) = 12:2:30;   % red/green target achromatic mask
-E.targetlevelsdB(6,:) = 14:2:32;   % blue/yellow target achromatic mask
-E.targetlevelsdB(7,:) = 2:2:20;  % achromatic target red/green mask
-E.targetlevelsdB(8,:) = 22:2:40;   % red/green target red/green mask
-E.targetlevelsdB(9,:) = 14:2:32;   % blue/yellow target red/green mask
-E.targetlevelsdB(10,:) = -2:2:16;  % achromatic target blue/yellow mask
-E.targetlevelsdB(11,:) = 16:2:34;   % red/green target blue/yellow mask
-E.targetlevelsdB(12,:) = 22:2:40;   % blue/yellow target blue/yellow mask
-E.targetlevelsC = (10.^(E.targetlevelsdB./20))./100;
-
+nSCs = [4 8 8 8 8 8 8 8];
 
 if ~exist('Results','dir')
     mkdir('Results');
@@ -76,14 +64,14 @@ if ~exist(strcat(E.exptpath,'Results\', subnamelist{subj}, '\'),'dir')
 end
 
 % here generate or load in a results file to keep track of progress
-if exist(strcat('Results\',subnamelist{subj},'conditionorderD.mat'),'file')
-    load(strcat('Results\',subnamelist{subj},'conditionorderD.mat'));
+if exist(strcat('Results\',subnamelist{subj},'conditionorderF.mat'),'file')
+    load(strcat('Results\',subnamelist{subj},'conditionorderF.mat'));
     disp('Reloaded participant settings');
 else
     
     thetalist = [0 160 90];      % generic values
-    if exist(strcat('Results\',subnamelist{subj},'isosettings.mat'),'file')
-        load(strcat('Results\',subnamelist{subj},'isosettings.mat'),'allsettings');
+    if exist(strcat('Results\',subnamelist{subj},'isosettingsF.mat'),'file')
+        load(strcat('Results\',subnamelist{subj},'isosettingsF.mat'),'allsettings');
         thetalist(2:3) = mean(allsettings');
         disp('Loaded isoluminant settings');
     else
@@ -94,42 +82,31 @@ else
     % this participant's isoluminance settings
     maxcont(2:3) = getmaxcont(thetalist,phosphors,fundamentals)
     
-    condorder = [];
-    for rep = 1:10
-        condorder = [condorder randperm(12)];
-    end
-    currentrep = 0;
+    condorder(1,:) = [randperm(length(E.pedcontrastsC)) randperm(length(E.pedcontrastsC)) randperm(length(E.pedcontrastsC))];
+    condorder(2,:) = [randperm(length(E.pedcontrastsC)) randperm(length(E.pedcontrastsC)) randperm(length(E.pedcontrastsC))];
+    condorder(3,:) = [randperm(length(E.pedcontrastsC)) randperm(length(E.pedcontrastsC)) randperm(length(E.pedcontrastsC))];
+    currentrep(1:3) = 0;
     
-    ntrials = zeros(12,10);
-    ncorrect = zeros(12,10);
-    save(strcat('Results\',subnamelist{subj},'conditionorderD.mat'),'thetalist','condorder','currentrep','maxcont','ntrials','ncorrect','E');
+    save(strcat('Results\',subnamelist{subj},'conditionorderF.mat'),'thetalist','condorder','currentrep','maxcont');
 end
 
-currentrep = currentrep + 1;
 % determine the condition for this block
-pedlevel = E.pedcontrastsC(condorder(currentrep));
-pedcond = E.pedtype(condorder(currentrep));
-targetlevels = E.targetlevelsC(condorder(currentrep),:);
-targetcond = E.targettype(condorder(currentrep));
-
-% random trial order for this block
-i = randperm(200);
-trialorder = repmat(1:10,[1 20]);
-eyeorder = repmat(1:2,[1 100]);
-trialorder = trialorder(i);
-eyeorder = eyeorder(i);
+pedlevel = condorder(expt,currentrep(expt)+1);
 
 bg_lms = rgb2lms(phosphors,fundamentals,[0.5; 0.5; 0.5]);
 
-lmsdiff(:,1) = [1; 1; 1];
-
-theta = thetalist(2) * pi/180;
-lms = [cos(theta); sin(theta); 0];
-lmsdiff(:,2) = 2.*(lms2rgb(phosphors,fundamentals,bg_lms + (maxcont(2).*lms.*bg_lms)) - 0.5);
-
-theta = thetalist(3) * pi/180;
-lms = [cos(theta)/sqrt(2); cos(theta)/sqrt(2); sin(theta)];
-lmsdiff(:,3) = 2.*(lms2rgb(phosphors,fundamentals,bg_lms + (maxcont(3).*lms.*bg_lms)) - 0.5);
+theta = thetalist(expt) * pi/180;
+switch expt
+    case 1
+        lms = [1; 1; 1];
+        lmsdiff = [1; 1; 1];
+    case 2
+        lms = [cos(theta); sin(theta); 0];
+        lmsdiff = 2.*(lms2rgb(phosphors,fundamentals,bg_lms + (maxcont(expt).*lms.*bg_lms)) - 0.5);
+    case 3
+        lms = [cos(theta)/sqrt(2); cos(theta)/sqrt(2); sin(theta)];
+        lmsdiff = 2.*(lms2rgb(phosphors,fundamentals,bg_lms + (maxcont(expt).*lms.*bg_lms)) - 0.5);
+end
 
 
 try
@@ -178,6 +155,7 @@ try
         nframestodisplay = ST.duration*ST.framerate;
         nframestowait = ST.ISI*ST.framerate;
         ST.greylevel = 0.5;
+        ifi = 1/ST.framerate;
         
         crsSetDrawOrigin(width/2, height/2);	% set origin to the middle of a framestore half page
         totalpages = crsGetSystemAttribute(CRS.NUMVIDEOPAGES);
@@ -187,14 +165,16 @@ try
         
         blanktexture = ones(height,width,3).*ST.greylevel;
         blanktexture = doRGBgamma(blanktexture,allp);
-        crsSetDrawPage(CRS.VIDEOPAGE, 1, 0);
+        for pageno = 1:26
+        crsSetDrawPage(CRS.VIDEOPAGE, (2*pageno)-1, 0);
         crsDrawMatrix42bitColour(0, 0, blanktexture); 	% load to framestore
+        end
         crsSetDisplayPage(1);
         crsFrameSync;
         
         % also open a PTB window to blank the other screen and create the fusion lock
-        rect = [1 1 1024 1024];
-        [w, winRect] = Screen('OpenWindow', screenNumber, 0);  %, rect);
+       % rect = [1 1 1024 1024];
+        [w, winRect] = Screen('OpenWindow', screenNumber, 0); %, rect);
         Screen('FillRect', w, 0);
         Screen('Flip', w);
         
@@ -212,13 +192,16 @@ try
         ST.width = width;
         ST.height = height;
         ifi = Screen('GetFlipInterval', w);
-        ifims = ifi * 1000 * 2; % Doubled because of frame interleaving
+        %         ifims = ifi * 1000 * 2; % Doubled because of frame interleaving
         
         r1 = [1 1 ST.gratingsizepix ST.gratingsizepix];
         destRectL = CenterRectOnPoint(r1, width*0.25, height*0.5);
         destRectR = CenterRectOnPoint(r1, width*0.75, height*0.5);
         
     end
+    
+    % just generate a single cycle of the temporal waveform (we will loop it)
+    waveform = sin(ST.TF.*(ifi:ifi:(1/ST.TF)).*2.*pi);
     
     borderanglelist = randperm(360) .* pi./180;
     borderradius = ST.npixelsperdegree*3;
@@ -270,37 +253,16 @@ try
     
     window = make_soft_window(ST.gratingsizepix,ST.gratingsizepix,0.9);
     for p = 1:length(ST.phaselist)
-        stimulus{p} = mkgrating(ST.gratingsizepix,ST.ncycles, 90, ST.phaselist(p), 1);
-    end   
-
-%     SC = getstaircasestruct(nSCs(pedlevel));
-%     R.ntrials = zeros(SC.ncases,length(SC.levels));
-%     R.ncorrect = R.ntrials;
-
+        stimulus{p} = ones(ST.gratingsizepix).*ST.phaselist(p);
+    end
+    
+    SC = getstaircasestruct(nSCs(pedlevel),100*E.pedcontrastsC(expt,pedlevel));
+    R.ntrials = zeros(SC.ncases,length(SC.levels));
+    R.ncorrect = R.ntrials;
+    
     if useVSG
         crsSetDisplayPage(1);
         crsFrameSync;
-        
-        targetstim = stimulus{1}.*window;    % target stimulus
-        imgMat(:,:,1) = targetstim .* lmsdiff(1,targetcond);
-        imgMat(:,:,2) = targetstim .* lmsdiff(2,targetcond);
-        imgMat(:,:,3) = targetstim .* lmsdiff(3,targetcond);
-        targetstim = (imgMat+1)./2;          
-        
-             % resize in half vertically for later horizontal expansion
-            targetstim = imresize(targetstim,[ST.gratingsizepix ST.gratingsizepix/2]);
-            
-            % apply gamma correction
-            targetstim = doRGBgamma(targetstim,allp);
-            
-            crsSetDrawPage(CRS.VIDEOPAGE, 9, 0);
-            crsDrawMatrix42bitColour(0, 0, blanktexture); 	% load to framestore
-            crsDrawMatrix42bitColour(-width/4, 3*height/8, targetstim); 	% load to framestore
-            crsDrawMatrix42bitColour(width/4, 3*height/8, targetstim); 	% load to framestore
-            
-        crsSetDisplayPage(9);
-        crsFrameSync;                 
-        
     else
         Screen('FillRect', w, 255*ST.greylevel);
         drawfixation(w,ST);
@@ -320,111 +282,147 @@ try
     end
     
     alltrials.subj = subnamelist{subj};
+    alltrials.expt = exptnamelist{expt};
     tic;
     
     trialcounter = 0;
-   while trialcounter < 200
+    while sum(SC.finished)<SC.ncases		% do trials if staircases are incomplete
         
-       trialcounter = trialcounter + 1;
+        trialcounter = trialcounter + 1;
         testinterval = ceil(rand*2);      % test in interval 1 or 2
         trialphase = ceil(rand*length(ST.phaselist));
         
         alltrials.testinterval(trialcounter) = testinterval;
         alltrials.phase(trialcounter) = ST.phaselist(trialphase);
         
-%         currenttrial = 0;
-%         while currenttrial==0                   % select current condition
-%             trialcond = ceil(rand*SC.ncases);
-%             if SC.finished(trialcond)==0
-%                 currenttrial = trialcond;
-%             end
-%         end
-%         
-%         currentcond = currenttrial;
-
-        alltrials.condition(trialcounter) = condorder(currentrep);
-        alltrials.pedcontrast(trialcounter) = 100*pedlevel;
-        alltrials.targetcontrast(trialcounter) = 100*targetlevels(trialorder(trialcounter));
-        
-        % generate stimuli
-        
-        targetstim = stimulus{trialphase}.*window.*targetlevels(trialorder(trialcounter));    % target stimulus
-        imgMat(:,:,1) = targetstim .* lmsdiff(1,targetcond);
-        imgMat(:,:,2) = targetstim .* lmsdiff(2,targetcond);
-        imgMat(:,:,3) = targetstim .* lmsdiff(3,targetcond);
-        targetstim = (imgMat+1)./2;       
-        
-        maskstim = stimulus{trialphase}.*window.*pedlevel;    % mask stimulus for this trial
-        if pedcond>0
-        imgMat(:,:,1) = maskstim .* lmsdiff(1,pedcond);
-        imgMat(:,:,2) = maskstim .* lmsdiff(2,pedcond);
-        imgMat(:,:,3) = maskstim .* lmsdiff(3,pedcond);
-        else
-        imgMat = imgMat.*0;
+        currenttrial = 0;
+        while currenttrial==0                   % select current condition
+            trialcond = ceil(rand*SC.ncases);
+            if SC.finished(trialcond)==0
+                currenttrial = trialcond;
+            end
         end
-        maskstim = (imgMat+1)./2;       
         
-        if eyeorder(trialcounter)==1
-            TLstim = targetstim;
-            TRstim = maskstim;
-            PLstim = 0.5 + (targetstim.*0);
-            PRstim = maskstim;
-        else
-            TLstim = maskstim;
-            TRstim = targetstim;
-            PLstim = maskstim;
-            PRstim = 0.5 + (targetstim.*0);
-        end
+        alltrials.staircase(trialcounter) = currenttrial;
+        alltrials.pedcontrast(trialcounter) = 100*E.pedcontrastsC(expt,pedlevel);
+        alltrials.targetcontrast(trialcounter) = 100*SC.levelsM(currenttrial,SC.currentno(currenttrial));
+        
+        for f = 1:length(waveform)
+            % generate stimuli
+            switch currenttrial
+                case 1      % monocular left
+                    TLstim = waveform(f).*stimulus{trialphase}.*window.*(E.pedcontrastsC(expt,pedlevel)+SC.levelsM(currenttrial,SC.currentno(currenttrial)));      % target interval, left eye
+                    TRstim = stimulus{trialphase}.*0;                                           % target interval, right eye
+                    PLstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);           % null interval, left eye
+                    PRstim = stimulus{trialphase}.*0;                                           % null interval, right eye
+                case 2      % monocular right
+                    TLstim = stimulus{trialphase}.*0;                            % target interval, right eye
+                    TRstim = waveform(f).*stimulus{trialphase}.*window.*(E.pedcontrastsC(expt,pedlevel)+SC.levelsM(currenttrial,SC.currentno(currenttrial)));      % target interval, left eye
+                    PLstim = stimulus{trialphase}.*0;                            % null interval, right eye
+                    PRstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);      % null interval, left eye
+                case {3,4}  % binocular
+                    TLstim = waveform(f).*stimulus{trialphase}.*window.*(E.pedcontrastsC(expt,pedlevel)+SC.levelsM(currenttrial,SC.currentno(currenttrial)));      % target interval, left eye
+                    TRstim = waveform(f).*stimulus{trialphase}.*window.*(E.pedcontrastsC(expt,pedlevel)+SC.levelsM(currenttrial,SC.currentno(currenttrial)));      % target interval, left eye
+                    PLstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);      % null interval, left eye
+                    PRstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);      % null interval, left eye
+                case 5      % hbin left
+                    TLstim = waveform(f).*stimulus{trialphase}.*window.*(E.pedcontrastsC(expt,pedlevel)+SC.levelsM(currenttrial,SC.currentno(currenttrial)));      % target interval, left eye
+                    TRstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                            % target interval, right eye
+                    PLstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                            % null interval, left eye
+                    PRstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                            % null interval, right eye
+                case 6      % hbin right
+                    TLstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                            % target interval, left eye
+                    TRstim = waveform(f).*stimulus{trialphase}.*window.*(E.pedcontrastsC(expt,pedlevel)+SC.levelsM(currenttrial,SC.currentno(currenttrial)));       % target interval, right eye
+                    PLstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                            % null interval, left eye
+                    PRstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                            % null interval, right eye
+                case 7      % dich left
+                    TLstim = waveform(f).*stimulus{trialphase}.*window.*SC.levelsM(currenttrial,SC.currentno(currenttrial));    % target interval, left eye
+                    TRstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                           % target interval, right eye
+                    PLstim = stimulus{trialphase}.*0;                                                 % null interval, left eye
+                    PRstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                           % null interval, right eye
+                case 8      % dich right
+                    TLstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                            % target interval, right eye
+                    TRstim = waveform(f).*stimulus{trialphase}.*window.*SC.levelsM(currenttrial,SC.currentno(currenttrial));     % target interval, left eye
+                    PLstim = waveform(f).*stimulus{trialphase}.*window.*E.pedcontrastsC(expt,pedlevel);                            % null interval, right eye
+                    PRstim = stimulus{trialphase}.*0;                                                  % null interval, left eye
+            end
+            
+            imgMat(:,:,1) = TLstim .* lmsdiff(1,1);
+            imgMat(:,:,2) = TLstim .* lmsdiff(2,1);
+            imgMat(:,:,3) = TLstim .* lmsdiff(3,1);
+            TLstim = (imgMat+1)./2;
+            
+            imgMat(:,:,1) = TRstim .* lmsdiff(1,1);
+            imgMat(:,:,2) = TRstim .* lmsdiff(2,1);
+            imgMat(:,:,3) = TRstim .* lmsdiff(3,1);
+            TRstim = (imgMat+1)./2;
+            
+            imgMat(:,:,1) = PLstim .* lmsdiff(1,1);
+            imgMat(:,:,2) = PLstim .* lmsdiff(2,1);
+            imgMat(:,:,3) = PLstim .* lmsdiff(3,1);
+            PLstim = (imgMat+1)./2;
+            
+            imgMat(:,:,1) = PRstim .* lmsdiff(1,1);
+            imgMat(:,:,2) = PRstim .* lmsdiff(2,1);
+            imgMat(:,:,3) = PRstim .* lmsdiff(3,1);
+            PRstim = (imgMat+1)./2;
+            
+            TLstim(find(TLstim<0)) = 0;
+            TLstim(find(TLstim>1)) = 1;
+            TRstim(find(TRstim<0)) = 0;
+            TRstim(find(TRstim>1)) = 1;
+            PLstim(find(PLstim<0)) = 0;
+            PLstim(find(PLstim>1)) = 1;
+            PRstim(find(PRstim<0)) = 0;
+            PRstim(find(PRstim>1)) = 1;
+            
+            % load stimuli to graphics memory
+            if useVSG        % load stimuli to framestore
                 
-        TLstim(find(TLstim<0)) = 0;
-        TLstim(find(TLstim>1)) = 1;
-        TRstim(find(TRstim<0)) = 0;
-        TRstim(find(TRstim>1)) = 1;
-        PLstim(find(PLstim<0)) = 0;
-        PLstim(find(PLstim>1)) = 1;
-        PRstim(find(PRstim<0)) = 0;
-        PRstim(find(PRstim>1)) = 1;
-        
-        % load stimuli to graphics memory
-        if useVSG        % load stimuli to framestore
-            
-            % resize in half vertically for later horizontal expansion
-            TLstim = imresize(TLstim,[ST.gratingsizepix ST.gratingsizepix/2]);
-            TRstim = imresize(TRstim,[ST.gratingsizepix ST.gratingsizepix/2]);
-            PLstim = imresize(PLstim,[ST.gratingsizepix ST.gratingsizepix/2]);
-            PRstim = imresize(PRstim,[ST.gratingsizepix ST.gratingsizepix/2]);
-            
-            % apply gamma correction
-            TLstim = doRGBgamma(TLstim,allp);
-            TRstim = doRGBgamma(TRstim,allp);
-            PLstim = doRGBgamma(PLstim,allp);
-            PRstim = doRGBgamma(PRstim,allp);
-            
-            crsSetDrawPage(CRS.VIDEOPAGE, 1+(2*testinterval), 0);
-            crsDrawMatrix42bitColour(0, 0, blanktexture); 	% load to framestore
-            crsDrawMatrix42bitColour(-width/4, 0, TLstim); 	% load to framestore
-            crsDrawMatrix42bitColour(width/4, 0, TRstim); 	% load to framestore
-            
-            crsSetDrawPage(CRS.VIDEOPAGE, 1+(2*(3-testinterval)), 0);
-            crsDrawMatrix42bitColour(0, 0, blanktexture); 	% load to framestore
-            crsDrawMatrix42bitColour(-width/4, 0, PLstim); 	% load to framestore
-            crsDrawMatrix42bitColour(width/4, 0, PRstim); 	% load to framestore
-            
-        else            % load stimuli to psychtoolbox textures
-            
-            if testinterval==1
-                I1Ltexture = Screen('MakeTexture', w, TLstim, [], [], 2);
-                I1Rtexture = Screen('MakeTexture', w, TRstim, [], [], 2);
-                I2Ltexture = Screen('MakeTexture', w, PLstim, [], [], 2);
-                I2Rtexture = Screen('MakeTexture', w, PRstim, [], [], 2);
-            else
-                I2Ltexture = Screen('MakeTexture', w, TLstim, [], [], 2);
-                I2Rtexture = Screen('MakeTexture', w, TRstim, [], [], 2);
-                I1Ltexture = Screen('MakeTexture', w, PLstim, [], [], 2);
-                I1Rtexture = Screen('MakeTexture', w, PRstim, [], [], 2);
+                % resize in half vertically for later horizontal expansion
+                TLstim = imresize(TLstim,[ST.gratingsizepix ST.gratingsizepix/2]);
+                TRstim = imresize(TRstim,[ST.gratingsizepix ST.gratingsizepix/2]);
+                PLstim = imresize(PLstim,[ST.gratingsizepix ST.gratingsizepix/2]);
+                PRstim = imresize(PRstim,[ST.gratingsizepix ST.gratingsizepix/2]);
+                
+                % apply gamma correction
+                TLstim = doRGBgamma(TLstim,allp);
+                TRstim = doRGBgamma(TRstim,allp);
+                PLstim = doRGBgamma(PLstim,allp);
+                PRstim = doRGBgamma(PRstim,allp);      
+                
+                crsSetDrawPage(CRS.VIDEOPAGE, 1+(2*f));
+                switch testinterval
+                    case 1
+                        crsDrawMatrix42bitColour(-width/4, 0, TLstim); 	% load to framestore
+                        crsDrawMatrix42bitColour(width/4, 0, TRstim); 	% load to framestore
+                        int2stimL(f,:,:,:) = PLstim;  % store the second interval's stimuli to load in later
+                        int2stimR(f,:,:,:) = PRstim;
+                    case 2
+                        crsDrawMatrix42bitColour(-width/4, 0, PLstim); 	% load to framestore
+                        crsDrawMatrix42bitColour(width/4, 0, PRstim); 	% load to framestore
+                        int2stimL(f,:,:,:) = TLstim;  % store the second interval's stimuli to load in later
+                        int2stimR(f,:,:,:) = TRstim;
+                end
+                
+            else            % load stimuli to psychtoolbox textures
+                
+                if testinterval==1
+                    I1Ltexture(f) = Screen('MakeTexture', w, TLstim, [], [], 2);
+                    I1Rtexture(f) = Screen('MakeTexture', w, TRstim, [], [], 2);
+                    I2Ltexture(f) = Screen('MakeTexture', w, PLstim, [], [], 2);
+                    I2Rtexture(f) = Screen('MakeTexture', w, PRstim, [], [], 2);
+                else
+                    I2Ltexture(f) = Screen('MakeTexture', w, TLstim, [], [], 2);
+                    I2Rtexture(f) = Screen('MakeTexture', w, TRstim, [], [], 2);
+                    I1Ltexture(f) = Screen('MakeTexture', w, PLstim, [], [], 2);
+                    I1Rtexture(f) = Screen('MakeTexture', w, PRstim, [], [], 2);
+                end
+                
             end
             
         end
+        
         if useRTS
             rtsScript = getRTSscript(nframestodisplay,nframestowait);
         end
@@ -439,16 +437,33 @@ try
                 PsychPortAudio('Start', PPA.tclong);
                 WaitSecs(2*ST.duration+ST.ISI);
             else
-                PsychPortAudio('Start', PPA.tclong);
-                crsSetDisplayPage(3);
-                crsFrameSync;
-                WaitSecs(ST.duration);
+                PsychPortAudio('Start', PPA.tc);
+                for framecount = 1:50
+                    f = mod(framecount-1,length(waveform))+1;
+                    crsSetDisplayPage(1 + (2*f));
+                   % crsFrameSync;
+                end
                 crsSetDisplayPage(1);
                 crsFrameSync;
-                WaitSecs(ST.ISI);
-                crsSetDisplayPage(5);
-                crsFrameSync;
-                WaitSecs(ST.duration);
+                tic;        % record offset time
+                
+                for f = 1:25
+                    crsSetDrawPage(CRS.VIDEOPAGE, 1+(2*f));
+                    crsDrawMatrix42bitColour(-width/4, 0, squeeze(int2stimL(f,:,:,:))); 	% load to framestore
+                    crsDrawMatrix42bitColour(width/4, 0, squeeze(int2stimR(f,:,:,:))); 	% load to framestore
+                end
+
+                while (toc<ST.ISI)
+                    WaitSecs(0.01);
+                end
+                
+                PsychPortAudio('Start', PPA.tc);
+                for framecount = 1:50
+                    f = mod(framecount-1,length(waveform))+1;
+                    crsSetDisplayPage(1 + (2*f));
+                   % crsFrameSync;
+                end
+
                 crsSetDisplayPage(1);
                 crsFrameSync;
             end
@@ -460,31 +475,47 @@ try
             drawfixation(w,ST);
             lastflip = Screen('Flip', w, lastflip+ST.postresponseduration);
             
-            % interval 1
-            Screen('FillRect', w, 255*ST.greylevel);
-            Screen('DrawTexture', w, I1Ltexture, [], destRectL);
-            Screen('DrawTexture', w, I1Rtexture, [], destRectR);
-            drawfixation(w,ST);
-            lastflip = Screen('Flip', w);
             PsychPortAudio('Start', PPA.tc);
+            framecount = 0;
+            startflip = lastflip;
+            while lastflip < (startflip + ST.duration)
+                framecount = framecount + 1;
+                f = mod(framecount-1,length(waveform))+1;
+                % interval 1
+                Screen('FillRect', w, 255*ST.greylevel);
+                Screen('DrawTexture', w, I1Ltexture(f), [], destRectL);
+                Screen('DrawTexture', w, I1Rtexture(f), [], destRectR);
+                drawfixation(w,ST);
+                lastflip = Screen('Flip', w);
+            end
             
             % interstimulus interval
             Screen('FillRect', w, 255*ST.greylevel);
             drawfixation(w,ST);
-            lastflip = Screen('Flip', w, lastflip+ST.duration);
-            
-            % interval 2
+            offset = Screen('Flip', w);
             Screen('FillRect', w, 255*ST.greylevel);
-            Screen('DrawTexture', w, I2Ltexture, [], destRectL);
-            Screen('DrawTexture', w, I2Rtexture, [], destRectR);
             drawfixation(w,ST);
-            lastflip = Screen('Flip', w, lastflip+ST.ISI);
+            lastflip = Screen('Flip', w, offset+ST.ISI);
+            
+            
             PsychPortAudio('Start', PPA.tc);
+            framecount = 0;
+            startflip = lastflip;
+            while lastflip < (startflip + ST.duration)
+                framecount = framecount + 1;
+                f = mod(framecount-1,length(waveform))+1;
+                % interval 2
+                Screen('FillRect', w, 255*ST.greylevel);
+                Screen('DrawTexture', w, I2Ltexture(f), [], destRectL);
+                Screen('DrawTexture', w, I2Rtexture(f), [], destRectR);
+                drawfixation(w,ST);
+                lastflip = Screen('Flip', w);
+            end
             
             % blank screen after stimulus offset
             Screen('FillRect', w, 255*ST.greylevel);
             drawfixation(w,ST);
-            lastflip = Screen('Flip', w, lastflip+ST.duration);
+            lastflip = Screen('Flip', w, lastflip);
             
         end
         tic;
@@ -506,7 +537,7 @@ try
                 exitcode = 1;
                 resp = 0;
                 breakcode = 1;
-                trialcounter = 10000;
+                SC.finished(:) = 1;
             end
             
         end
@@ -514,13 +545,16 @@ try
         alltrials.responsetime(trialcounter) = toc;
         tic;
         
-        ntrials(condorder(currentrep),trialorder(trialcounter)) = ntrials(condorder(currentrep),trialorder(trialcounter)) + 1;
+        
+        R.ntrials(currenttrial,SC.currentno(currenttrial)) = R.ntrials(currenttrial,SC.currentno(currenttrial)) + 1;		% update results structure
         if resp==testinterval
             alltrials.iscorrect(trialcounter) = 1;
-            ncorrect(condorder(currentrep),trialorder(trialcounter)) = ncorrect(condorder(currentrep),trialorder(trialcounter)) + 1;
+            R.ncorrect(currenttrial,SC.currentno(currenttrial)) = R.ncorrect(currenttrial,SC.currentno(currenttrial)) + 1;
+            SC = dostaircase(SC, currenttrial, 1);      % correct
             PsychPortAudio('Start', PPA.gb);
         else
             alltrials.iscorrect(trialcounter) = 0;
+            SC = dostaircase(SC, currenttrial, 0);      % incorrect
             PsychPortAudio('Start', PPA.bb);
         end
         
@@ -529,6 +563,7 @@ try
             if useRTS
                 crsRTSDestroyStream(rtsScript);
             end
+            clear int2stimL int2stimR;
         else
             Screen('Close', I1Ltexture);
             Screen('Close', I1Rtexture);
@@ -545,9 +580,10 @@ try
     
     
     if ~breakcode
-    save(strcat('Results\',subnamelist{subj},'conditionorderD.mat'),'thetalist','condorder','currentrep','maxcont','ntrials','ncorrect','E');
-%         R.levels = SC.levels;        
-%         save(strcat(E.exptpath,'Results\', subnamelist{subj}, '\D_',exptnamelist{expt},num2str(pedlevel),'rep',num2str(ceil(currentrep(expt)/length(E.pedcontrastsdB))),'.mat'), 'R','alltrials','thetalist','maxcont');
+        currentrep(expt) = currentrep(expt) + 1;
+        save(strcat('Results\',subnamelist{subj},'conditionorderF.mat'),'thetalist','condorder','currentrep','maxcont');
+        R.levels = SC.levels;
+        save(strcat(E.exptpath,'Results\', subnamelist{subj}, '\F_',exptnamelist{expt},num2str(pedlevel),'rep',num2str(ceil(currentrep(expt)/length(E.pedcontrastsdB))),'.mat'), 'R','alltrials','thetalist','maxcont');
     end
     
 catch
@@ -563,28 +599,29 @@ PsychPortAudio('Close', PPA.bb);
 PsychPortAudio('Close', PPA.tc);
 PsychPortAudio('Close', PPA.tclong);
 
-if pedcond>0
-pedname = exptnamelist{pedcond};
-else
-pedname = 'DET';
-end
 
 % export csv text file with trial-by-trial results
-fid = fopen(strcat(E.exptpath,'Results\', subnamelist{subj}, '\D_MCSblock',num2str(currentrep),'.csv'),'w');
-fprintf(fid,'Subject,TargetType,PedestalType,PedestalContrast,TargetContrast,TargetInterval,Phase,IsCorrect,ResponseTime\n');
+fid = fopen(strcat(E.exptpath,'Results\', subnamelist{subj}, '\F_',exptnamelist{expt},num2str(pedlevel),'rep',num2str(ceil(currentrep(expt)/length(E.pedcontrastsdB))),'.csv'),'w');
+fprintf(fid,'Subject,Experiment,Condition,PedestalContrast,TargetContrast,TargetInterval,Phase,IsCorrect,ResponseTime\n');
 for s = 1:length(alltrials.testinterval)
-    outputvect = [alltrials.pedcontrast(s), alltrials.targetcontrast(s), alltrials.testinterval(s), alltrials.phase(s), alltrials.iscorrect(s), alltrials.responsetime(s)];
-    fprintf(fid,strcat(alltrials.subj, ',', exptnamelist{targetcond}, ',',pedname,',%2.3f,%2.3f,%2.0f,%2.0f,%2.0f,%2.3f\n'),outputvect);
+    outputvect = [alltrials.staircase(s), alltrials.pedcontrast(s), alltrials.targetcontrast(s), alltrials.testinterval(s), alltrials.phase(s), alltrials.iscorrect(s), alltrials.responsetime(s)];
+    fprintf(fid,strcat(alltrials.subj, ',', alltrials.expt, ',%2.0f,%2.3f,%2.3f,%2.0f,%2.0f,%2.0f,%2.3f\n'),outputvect);
 end
 fclose(fid);
-
 
 if useVSG
     VSGwarmup;
 end
 
 % show figure indicating progress through experiments
-waitbar(currentrep/length(condorder),strcat(num2str(round(100*currentrep/length(condorder))),'% complete'))
+figure(1);
+barh(3:-1:1,currentrep);
+axis([0 24 0 4]);
+title(strcat(subnamelist{subj},'-Progress'));
+text(11,3,'Achromatic');
+text(11,2,'Red/Green');
+text(11,1,'Blue/Yellow');
+colormap(cool);
 
 end
 %--------------------------------------------------------------------------
@@ -684,6 +721,92 @@ h = exp(-((i.^2) ./ (2 .* std.^2)) - ((j.^2) ./ (2 .* std.^2)));
 
 end
 %--------------------------------------------------------------------------------------------------
+function SC = getstaircasestruct(ncases,pedcontrast)
+
+% now with separate staircase levels for different conditions
+% dichoptic can get up to 100% (40dB)
+% other conditions up to the closest dB value to 100-pedestal
+
+maxval = floor(20*log10(100-pedcontrast));  % maximum dB value
+minval = maxval - 57;
+SC.pedlevelC = pedcontrast;
+SC.ncases = ncases;                % staircase pairs
+SC.stepsize = 3;		% staircase step size (dB)
+SC.downrule = 3;		% decreases contrast after x correct responses
+SC.uprule = 1;			% increases contrast after x incorrect responses
+SC.maxtrials = 70;
+SC.maxreversals = 12;   %
+SC.minlevel = [minval minval minval minval minval minval -17 -17];
+SC.maxlevel = [maxval maxval maxval maxval maxval maxval 40 40];
+for cond = 1:SC.ncases
+    SC.levels(cond,:) = SC.minlevel(cond):SC.stepsize:SC.maxlevel(cond);	   % possible test contrast values
+end
+SC.levelsM = 10.^(SC.levels./20)/100;                  % contrast levels in michelson
+SC.startpoint(1:ncases) = 14;   % starting point in 'staircase units'
+for cond = 1:SC.ncases
+    SC.startlev(cond) = SC.levels(cond,SC.startpoint(cond));  % starting point in dB
+end
+SC.ntrials(1:SC.ncases) = 0;			% reset staircase variables for this block
+SC.nreversals(1:SC.ncases) = 0;
+SC.finished(1:SC.ncases) = 0;
+SC.nright(1:SC.ncases) = 0;
+SC.nwrong(1:SC.ncases) = 0;
+SC.currentno(1:SC.ncases) = SC.startpoint;		% starting point for the staircase (staircase units)
+SC.lastdir(1:SC.ncases) = 0;
+
+end
+%--------------------------------------------------------------------------
+function SC = dostaircase(SC, currenttrial, response)
+
+% this adjusts the staircase structure (SC) so that it is correct for the next trial
+% current trial gives the condition (here 1-4) of the trial which has just been run
+% response is either 0 (incorrect) or 1 (correct)
+
+SC.ntrials(currenttrial) = SC.ntrials(currenttrial) + 1;		% trial counter
+jump = 1;
+if SC.nreversals(currenttrial)<2    % after the first trial nreverals = 1, so setting this to 2 means we really start collecting on the 1st reversal
+    jump = 2;                                                   % goes in bigger steps if we're before the first reversal
+    SC.ntrials(currenttrial) = SC.ntrials(currenttrial) - 1;    % don't count trials before the first reversal
+end
+
+if response==0					% add to the numbers of right or wrong responses at this level
+    SC.nwrong(currenttrial) = SC.nwrong(currenttrial) + 1;
+    % SC.nright(currenttrial) = 0;
+else
+    SC.nright(currenttrial) = SC.nright(currenttrial) + 1;
+    % SC.nwrong(currenttrial) = 0;
+end
+
+thisdir = SC.lastdir(currenttrial);
+if SC.nwrong(currenttrial)==SC.uprule			% need to increment
+    SC.currentno(currenttrial) = SC.currentno(currenttrial) + jump;
+    SC.nwrong(currenttrial) = 0;                    % reset to 0
+    thisdir = 1;									% going up
+elseif SC.nright(currenttrial)==SC.downrule		% need to decrement
+    SC.currentno(currenttrial) = SC.currentno(currenttrial) - jump;
+    SC.nright(currenttrial) = 0;                    % reset to 0
+    thisdir = -1;									% going down
+end
+
+if thisdir~=SC.lastdir(currenttrial)		% have we changed direction?
+    SC.nreversals(currenttrial) = SC.nreversals(currenttrial) + 1;
+    SC.lastdir(currenttrial) = thisdir;
+end
+
+if SC.currentno(currenttrial)>length(SC.levels)			% check to see if we've gone too high
+    SC.currentno(currenttrial) = length(SC.levels);
+elseif SC.currentno(currenttrial)<1						% or too low
+    SC.currentno(currenttrial) = 1;
+end
+
+if SC.ntrials(currenttrial)>=SC.maxtrials				% has the staircase finished?
+    SC.finished(currenttrial) = 1;
+elseif SC.nreversals(currenttrial)>=SC.maxreversals
+    SC.finished(currenttrial) = 1;
+end
+
+end
+%--------------------------------------------------------------------------
 function imLG = makeloggabor(imSize,f0,theta0,omega,h,phi,logGabType)
 
 % imLG = makeloggabor(imSize,f0,theta0,omega,h,logGabType)

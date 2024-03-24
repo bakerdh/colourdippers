@@ -7,7 +7,7 @@ function runcolourdippers
 
 close all;
 
-subj = menu('Select participant','DHB','JTM','KJH','Test');
+subj = menu('Select participant','P1','P2','P3','Test');
 WaitSecs(0.5);
 expt = menu('Choose experiment','Achromatic','Red/Green','Blue/Yellow');
 

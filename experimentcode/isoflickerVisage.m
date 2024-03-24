@@ -11,7 +11,7 @@ function isoflickerVisage
 close all;
 tic
 
-subj = menu('Select participant','DHB','JTM','KJH','FGS','RJH','Test');
+subj = menu('Select participant','DHB','JTM','KJH','MR','RJH','Test');
 subnamelist = {'P1','P2','P3','P4','P5','XX'};
 E.subj = subnamelist{subj};
 
@@ -353,8 +353,6 @@ WaitSecs(1);
                 trial = 10000;
             end
         end
-        
-        
         
         
         if useVSG
