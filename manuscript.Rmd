@@ -20,7 +20,7 @@ header-includes:
 
 ```{r setup, include=FALSE}
 
-processdata <- 1
+processdata <- 0
 # the processdata flag has three settings:
 # 0: do no analysis, just produce the pdf of the manuscript
 # 1: fit psychometric functions and plot graphs
@@ -225,30 +225,32 @@ if (!dir.exists('local')){dir.create('local')}
 if (!dir.exists('local/fits')){dir.create('local/fits')}
 
 osfrepo <- '3vdga'
-
-if (!file.exists('local/Experiment1.csv')){}
-if (!file.exists('local/Experiment2.csv')){}
-if (!file.exists('local/Experiment3.csv')){}
-if (!file.exists('local/fundamentals.csv')){}
-if (!file.exists('local/isosettings.csv')){}
-if (!file.exists('local/phosphors.csv')){}
+osfproject <- osf_retrieve_node(osfrepo)
+osffiles <- osf_ls_files(osfproject,n_max=300)
+    
+if (!file.exists('local/Experiment1.csv')){osf_download(osffiles[which(osffiles$name=='Experiment1.csv'),],'local/',progress=TRUE)}
+if (!file.exists('local/Experiment2.csv')){osf_download(osffiles[which(osffiles$name=='Experiment2.csv'),],'local/',progress=TRUE)}
+if (!file.exists('local/Experiment3.csv')){osf_download(osffiles[which(osffiles$name=='Experiment3.csv'),],'local/',progress=TRUE)}
+if (!file.exists('local/fundamentals.csv')){osf_download(osffiles[which(osffiles$name=='fundamentals.csv'),],'local/',progress=TRUE)}
+if (!file.exists('local/isosettings.csv')){osf_download(osffiles[which(osffiles$name=='isosettings.csv'),],'local/',progress=TRUE)}
+if (!file.exists('local/phosphors.csv')){osf_download(osffiles[which(osffiles$name=='phosphors.csv'),],'local/',progress=TRUE)}
 
 if (processdata < 1){
- if (!file.exists('local/thresholddata.RData')){}
- if (!file.exists('local/thresholddataDisc.RData')){}
- if (!file.exists('local/MCSdata.RData')){}
+ if (!file.exists('local/thresholddata.RData')){osf_download(osffiles[which(osffiles$name=='thresholddata.RData'),],'local/',progress=TRUE)}
+ if (!file.exists('local/thresholddataDisc.RData')){osf_download(osffiles[which(osffiles$name=='thresholddataDisc.RData'),],'local/',progress=TRUE)}
+ if (!file.exists('local/MCSdata.RData')){osf_download(osffiles[which(osffiles$name=='MCSdata.RData'),],'local/',progress=TRUE)}
 }
 
 if (processdata < 2){
- if (!file.exists('local/simplexfits.RData')){}
- if (!file.exists('local/stanfit1.RData')){}
- if (!file.exists('local/stanfit2.RData')){}
- if (!file.exists('local/stanfit3.RData')){}
- if (!file.exists('local/stanfit4.RData')){}
+ if (!file.exists('local/simplexfits.RData')){osf_download(osffiles[which(osffiles$name=='simplexfits.RData'),],'local/',progress=TRUE)}
+ if (!file.exists('local/stanfit1.RData')){osf_download(osffiles[which(osffiles$name=='stanfit1.RData'),],'local/',progress=TRUE)}
+ if (!file.exists('local/stanfit2.RData')){osf_download(osffiles[which(osffiles$name=='stanfit2.RData'),],'local/',progress=TRUE)}
+ if (!file.exists('local/stanfit3.RData')){osf_download(osffiles[which(osffiles$name=='stanfit3.RData'),],'local/',progress=TRUE)}
+ if (!file.exists('local/stanfit4.RData')){osf_download(osffiles[which(osffiles$name=='stanfit4.RData'),],'local/',progress=TRUE)}
 }
 
-if (!file.exists('references.bib')){}
-if (!file.exists('journal-of-vision.csl')){}
+# if (!file.exists('references.bib')){}
+# if (!file.exists('journal-of-vision.csl')){}
 
 ```
 
@@ -2514,7 +2516,7 @@ row_spec(c(1,6),hline_after=T) %>% row_spec(0,italic=T) %>% row_spec(c(0,2,7),bo
 
 ```
 
-For consistency with previous work, we initially performed least-squares fits of the two-stage model [@Meese2006] for each of the chromaticity experiments, and the flickering disc experiment (7 free parameters per fit). The best model fits are shown by the curves in Figures \@ref(fig:dipperfig) & \@ref(fig:discdata), and provide an excellent description of the data, with RMS errors between `r round(min(allrms),digits=2)` and `r round(max(allrms),digits=2)`dB. Best fitting parameters are shown in the 'Simplex fits' section of Table \@ref(tab:parametertable). We note that in previous work, the weight of interocular suppression ($\omega$ in the model) is implicitly fixed at 1. Here we allowed it to vary, but it still received a value of exactly 1 in all of our grating conditions, and slightly below 1 (`r round(allp[4,6],digits=2)`) for our flickering discs. The exponent values (*p* and *q*) for the red/green gratings are rather different from those of the other conditions. In previous work [@Meese2006] the second stage gain control nonlinearity (Equation 4) does typically have quite substantial exponent values, which balance the relatively mild nonlinearity at the first stage, and produce a compressive transducer that results in contrast masking (the handle of the dipper). The high value of *p* (`r round(allp[2,1], digits=2)`) is therefore likely to be compensating for the low value of *m* (`r round(allp[2,3], digits=2)`) at stage one, but may well represent the combination of several successive stages of nonlinearity, and perhaps also other phenomena such as uncertainty [@Pelli1985].
+For consistency with previous work, we initially performed least-squares fits of the two-stage model [@Meese2006] for each of the chromaticity experiments, and the flickering disc experiment (7 free parameters per fit). The best model fits are shown by the curves in Figures \@ref(fig:dipperfig) & \@ref(fig:discdata), and provide an excellent description of the data, with RMS errors between `r round(min(allrms),digits=2)` and `r round(max(allrms),digits=2)`dB. Best fitting parameters are shown in the 'Simplex fits' section of Table \@ref(tab:parametertable). We note that in previous work, the weight of interocular suppression ($\omega$ in the model) is implicitly fixed at 1. Here we allowed it to vary, but it still received a value of exactly 1 in all of our grating conditions, and slightly below 1 (`r round(allp[4,6],digits=2)`) for our flickering discs. The exponent values (*p* and *q*) for the red/green gratings are rather different from those of the other conditions. In previous work [@Meese2006] the second stage gain control nonlinearity (Equation 4) does typically have quite substantial exponent values, which balance the relatively mild nonlinearity at the first stage, and produce a compressive transducer that results in contrast masking (the handle of the dipper). The high value of *p* = `r round(allp[2,1], digits=2)` is therefore likely to be compensating for the low value of *m* = `r round(allp[2,3], digits=2)` at stage one, but may well represent the combination of several successive stages of nonlinearity, and perhaps also other phenomena such as uncertainty [@Pelli1985].
 
 We additionally implemented a hierarchical Bayesian version of the model in order to estimate full posterior parameter distributions. This model was fit simultaneously to the full trial-by-trial data from all participants who participated in a given experiment (i.e. the model was fitted separately to each of the four dipper data sets). Figure \@ref(fig:bayesianmodel)a-d summarises the model behaviour, which displays the same pattern of dipper functions as we found empirically. Mean posterior parameter values are given in the lower rows of Table \@ref(tab:parametertable). These correspond quite closely to the parameters from the simplex fitting and the original @Meese2006 parameters (reproduced in the first row of the table for reference). The panels in the right and upper margins of Figure \@ref(fig:bayesianmodel) show posterior distributions for each model parameter. Note in particular that the posterior distribution for the weight of interocular suppression ($\omega$, top right panel) overlaps 1 for each experiment, consistent with the strong dichoptic masking observed in the threshold data. We note that the distribution for $\omega$ in the flickering disc condition is somewhat lower than for the other three data sets. However this difference is not meaningful according to criteria such as comparing the 95% credible intervals of the distribution to a value of $\omega=1$.
 
