@@ -247,6 +247,7 @@ if (processdata < 2){
  if (!file.exists('local/stanfit2.RData')){osf_download(osffiles[which(osffiles$name=='stanfit2.RData'),],'local/',progress=TRUE)}
  if (!file.exists('local/stanfit3.RData')){osf_download(osffiles[which(osffiles$name=='stanfit3.RData'),],'local/',progress=TRUE)}
  if (!file.exists('local/stanfit4.RData')){osf_download(osffiles[which(osffiles$name=='stanfit4.RData'),],'local/',progress=TRUE)}
+if (!file.exists('local/MCSfit.RData')){osf_download(osffiles[which(osffiles$name=='MCSfit.RData'),],'local/',progress=TRUE)}
 }
 
 # if (!file.exists('references.bib')){}
