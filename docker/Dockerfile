@@ -27,11 +27,10 @@ coda \
 modeest \
 pals \
 pracma \
-parallel \
 doParallel \
 R.matlab \
 bayestestR \
 alphahull \
 kableExtra
 
-RUN R 'reticulate::use_python("/usr/bin/python3")'
+RUN R 'reticulate::install_miniconda()'
