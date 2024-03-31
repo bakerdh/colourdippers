@@ -46,7 +46,7 @@ invisible(lapply(toinstall,library,character.only=TRUE))
 # ncores <- parallel::detectCores()  # auto-detect number of cores (optional)
 
 if (processdata>0){
-  use_miniconda('r-reticulate')
+  # use_miniconda('r-reticulate')
   # install psignifit in the terminal with:
   # sudo pip install https://github.com/wichmann-lab/python-psignifit/zipball/master
   ps <- import('psignifit')

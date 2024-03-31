@@ -32,5 +32,3 @@ R.matlab \
 bayestestR \
 alphahull \
 kableExtra
-
-RUN R 'reticulate::install_miniconda()'
