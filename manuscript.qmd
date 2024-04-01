@@ -9,7 +9,9 @@ author:
   - Joel T. Martin
   - Maya Rockman
   - Alex R. Wade
-format: pdf
+format:
+  pdf:
+    keep-tex: true
 execute:
   echo: false
 bibliography: references.bib

@@ -6,4 +6,4 @@ document:
 
 document-docker: 
 	R -e "xfun::pkg_attach2('rmarkdown')"
-	R -e "rmarkdown::render('manuscript.qmd', output_format='pdf')"
+	R -e "rmarkdown::render('manuscript.qmd', output_format='pdf_document')"
