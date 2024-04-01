@@ -12,6 +12,7 @@ author:
 format:
   pdf:
     keep-tex: true
+pdf-engine: xelatex
 execute:
   echo: false
 bibliography: references.bib
@@ -23,7 +24,7 @@ header-includes:
 
 ```{r setup, include=FALSE}
 
-processdata <- 0
+processdata <- 1
 # the processdata flag has three settings:
 # 0: do no analysis, just produce the pdf of the manuscript
 # 1: fit psychometric functions and plot graphs
@@ -49,9 +50,9 @@ invisible(lapply(toinstall,library,character.only=TRUE))
 # ncores <- parallel::detectCores()  # auto-detect number of cores (optional)
 
 if (processdata>0){
-  install_miniconda()
-  use_miniconda('r-reticulate')
-  py_install('https://github.com/wichmann-lab/python-psignifit/zipball/master')
+  # install_miniconda()
+  # use_miniconda('r-reticulate')
+  # py_install('https://github.com/wichmann-lab/python-psignifit/zipball/master')
   # install psignifit in the terminal with:
   # sudo pip install https://github.com/wichmann-lab/python-psignifit/zipball/master
   ps <- import('psignifit')
