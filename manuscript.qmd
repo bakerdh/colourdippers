@@ -53,7 +53,7 @@ if (processdata>0){
   use_python('/lib/python3')
   # install_miniconda()
   # use_miniconda('r-reticulate')
-  # py_install('https://github.com/wichmann-lab/python-psignifit/zipball/master')
+  py_install('https://github.com/wichmann-lab/python-psignifit/zipball/master')
   # install psignifit in the terminal with:
   # sudo pip install https://github.com/wichmann-lab/python-psignifit/zipball/master
   ps <- import('psignifit')
