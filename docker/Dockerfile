@@ -7,10 +7,6 @@ RUN apt-get -y install libxml2-dev
 RUN apt-get -y install ghostscript
 RUN apt-get -y install libxt-dev
 RUN apt-get -y install git
-RUN apt-get -y install -y libpython3-dev
-RUN apt-get -y install python3-pip
-
-RUN pip3 install https://github.com/wichmann-lab/python-psignifit/zipball/master
 
 RUN install2.r –error \
 --deps TRUE \

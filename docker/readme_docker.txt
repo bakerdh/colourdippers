@@ -6,7 +6,7 @@ Note that at the time of writing this does not work properly on Apple Silicon de
 
 FROM rocker/rstudio:latest-daily
 
-it will run with the most recent build of RStudio instead of version 4.2.2. This seems likely to work for the forseeable future. However this build may not have all the required packages for building the pdf file.
+it will run with the most recent build of RStudio instead of version 4.3.3. This seems likely to work for the forseeable future. However this build may not have all the required packages for building the pdf file.
 
 
 Instructions:
@@ -16,7 +16,7 @@ Instructions:
 2. Next download the Dockerfile from the project GitHub repository and place it in a subdirectory of your root user directory called 'docker'
 
 3. Run the docker file by entering the following in a terminal:
-docker build -t sizebuild -f docker/Dockerfile .
+docker build -t colourdippers -f docker/Dockerfile .
 
 4. Once the image has finished building, launch a container in Docker desktop by clicking the play icon
 
@@ -28,4 +28,4 @@ docker build -t sizebuild -f docker/Dockerfile .
 git clone https://github.com/bakerdh/colourdippers.git
 This will download the repository to a folder called colourdippers
 
-8. You can then open the project and the markdown file, and run the code
+8. You can then open the project and the quarto file, and run the code
