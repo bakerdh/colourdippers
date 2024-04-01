@@ -7,6 +7,8 @@ RUN apt-get -y install libxml2-dev
 RUN apt-get -y install ghostscript
 RUN apt-get -y install libxt-dev
 RUN apt-get -y install git
+RUN apt-get -y install -y libpython3-dev
+RUN apt-get -y install python3-pip
 
 RUN install2.r –error \
 --deps TRUE \
@@ -25,3 +27,5 @@ R.matlab \
 bayestestR \
 alphahull \
 kableExtra
+
+RUN R 'reticulate::use_python("/usr/bin/python3")'
