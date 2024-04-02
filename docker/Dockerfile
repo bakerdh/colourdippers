@@ -9,6 +9,7 @@ RUN apt-get -y install libxt-dev
 RUN apt-get -y install git
 RUN apt-get -y install -y libpython3-dev
 RUN apt-get -y install python3-pip
+RUN apt-get -y install python3-venv
 
 RUN install2.r –error \
 --deps TRUE \
