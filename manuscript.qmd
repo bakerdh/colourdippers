@@ -50,8 +50,8 @@ invisible(lapply(toinstall,library,character.only=TRUE))
 # ncores <- parallel::detectCores()  # auto-detect number of cores (optional)
 
 if (processdata>0){
-  install_python(list = TRUE)
-  # use_python_version("3.9:latest")
+  install_python(version="3.9.19")
+  use_python_version("3.9.19")
   # use_python('/usr/bin/python3')
   # install_miniconda()
   # use_miniconda('r-reticulate')
