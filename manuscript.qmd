@@ -13,8 +13,8 @@ format:
   pdf:
     keep-tex: true
 pdf-engine: xelatex
-execute:
-  echo: false
+# execute:
+#   echo: false
 bibliography: references.bib
 csl: journal-of-vision.csl
 header-includes: 
@@ -50,7 +50,8 @@ invisible(lapply(toinstall,library,character.only=TRUE))
 # ncores <- parallel::detectCores()  # auto-detect number of cores (optional)
 
 if (processdata>0){
-  use_python_version("3.9:latest")
+  install_python(list = TRUE)
+  # use_python_version("3.9:latest")
   # use_python('/usr/bin/python3')
   # install_miniconda()
   # use_miniconda('r-reticulate')
