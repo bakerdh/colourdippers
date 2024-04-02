@@ -221,11 +221,11 @@ participants must discriminate between stimuli of two contrasts (a
 `pedestal', and a `pedestal plus target') that are both presented to one
 eye, whilst the other eye views mean luminance. Threshold is defined as
 the minimum target contrast required to make this judgement with 75\%
-accuracy. The binocular condition is the same, except that the same
-stimuli are shown to both eyes. In the half-binocular condition the
-pedestal is shown to both eyes, but the target increment shown only to
-one eye. Finally, the dichoptic condition involves presenting the
-pedestal to one eye, and the target increment to the other eye.
+accuracy. The binocular condition is the same, except that the stimuli
+are shown to both eyes. In the half-binocular condition the pedestal is
+shown to both eyes, but the target increment is shown only to one eye.
+Finally, the dichoptic condition involves presenting the pedestal to one
+eye, and the target increment to the other eye.
 
 \begin{figure}
 
@@ -302,15 +302,16 @@ which are DC-balanced across time (Segala et al., 2023). Steady-state
 EEG responses from early visual cortex and psychophysical contrast
 matching data were both consistent with weak interocular suppression
 when using this stimulus arrangement. This is very different from the
-`ocularity invariance' that is well-established when using DC-balanced
-periodic stimuli such as sine-wave gratings, and implies strong
-interocular suppression (Baker \& Wade, 2017; Meese et al., 2006; Moradi
-\& Heeger, 2009). There is additional psychophysical evidence from
-matching studies that binocular combination can be close to linear for
-luminance increments (Anstis \& Ho, 1998; Levelt, 1965), particularly
-against a dark background (Baker et al., 2012). Both structural and
-functional data therefore imply that binocular combination may differ
-between spatial and temporal contrast.
+`ocularity invariance' (where binocular and monocular stimuli appear
+equal) that is well-established when using DC-balanced periodic stimuli
+such as sine-wave gratings, and implies strong interocular suppression
+(Baker \& Wade, 2017; Meese et al., 2006; Moradi \& Heeger, 2009). There
+is additional psychophysical evidence from matching studies that
+binocular combination can be close to linear for luminance increments
+(Anstis \& Ho, 1998; Levelt, 1965), particularly against a dark
+background (Baker et al., 2012). Both structural and functional data
+therefore imply that binocular combination may differ between spatial
+and temporal contrast.
 
 The main aim of the present study is to characterise binocular signal
 combination for chromatic stimuli, and for temporal modulations of
@@ -337,10 +338,10 @@ interocular suppression vary across visual pathways.
 
 All experiments were completed by the first author (DHB) and two
 additional participants, who differed for each experiment. Participants
-had no known abnormalities of binocular vision. Written informed consent
-was obtained before data collection began, and all procedures were
-approved by the ethics committee of the Department of Psychology at the
-University of York (ID number 2202).
+had no known abnormalities of binocular or colour vision. Written
+informed consent was obtained before data collection began, and all
+procedures were approved by the ethics committee of the Department of
+Psychology at the University of York (ID number 2202).
 
 \hypertarget{apparatus-stimuli}{%
 \subsection{Apparatus \& stimuli}\label{apparatus-stimuli}}
@@ -495,10 +496,13 @@ modelling}\label{data-analysis-and-computational-modelling}}
 Psychometric functions from each experiment were fit using
 \emph{psignifit} 4 to estimate threshold and slope parameters via a
 Bayesian numerical integration method (Schütt et al., 2016). A
-cumulative Gaussian was used as the underlying function, and we
-converted the slope estimates (\(\sigma\) parameters from the fitted
-Gaussians) to equivalent Weibull \(\beta\) values using the
-approximation \(\beta = 10.3/\sigma\).
+cumulative Gaussian was used as the underlying function, with contrast
+values expressed in decibel (dB) units (where
+\(C_{dB} = 20log_{10}(C_\%)\)). We converted the slope estimates
+(\(\sigma\) parameters from the fitted Gaussians) to equivalent Weibull
+\(\beta\) values using the approximation \(\beta = 10.3/\sigma\).
+Threshold was defined as the target contrast corresponding to an
+accuracy of 75\% correct.
 
 The two stage model of Meese et al. (2006) was fit to the threshold data
 from Experiments 1 and 3 using a simplex algorithm to minimise the error
@@ -510,7 +514,7 @@ Stage1_L = \frac{C_L^m}{S + C_L + \omega C_R},
 \end{equation}
 
 \begin{equation}
-Stage1_R = \frac{C_L^m}{S + C_R + \omega C_L},
+Stage1_R = \frac{C_R^m}{S + C_R + \omega C_L},
 \end{equation}
 
 \begin{equation}
@@ -529,9 +533,9 @@ outputs to either d-prime or threshold values (note that in the original
 model specification (Meese et al., 2006) this parameter was called
 \(\sigma\), but we use the \(k\) symbol here to avoid confusion with the
 standard deviation of the cumulative Gaussian used when fitting the
-psychometric functions to derive thresholds). Thresholds are defined by
-iteratively adjusting the target contrast until the following equality
-is satisfied:
+psychometric functions to estimate thresholds). Thresholds are defined
+by iteratively adjusting the target contrast until the following
+equality is satisfied:
 
 \begin{equation}
 Stage2_{target+pedestal} - Stage2_{pedestal} = k,
@@ -545,7 +549,7 @@ d' = \frac{Stage2_{target+pedestal} - Stage2_{pedestal}}{k}.
 
 We ran the simplex algorithm from 100 random starting vectors for each
 data set, and chose the solution for each data set that gave the
-smallest RMS error.
+smallest root mean squared error (RMSE) between the model and data.
 
 We also implemented a Bayesian hierarchical version of the model using
 the Stan language (Carpenter et al., 2017). This used a binomial
@@ -637,8 +641,8 @@ function expressed in Weibull \(\beta\) units. Error bars give ±1SE
 across participants. Note that contrast values are expressed as a
 percentage of the maximum displayable contrast (see Procedures for
 details). Curves in panels (a-c) show the best fitting models, optimized
-using a simplex algorithm (described in section 4.4), and RMSE values
-give the root mean square errors of the fits.}
+using a simplex algorithm, and RMSE values give the root mean squared
+errors of the fits.}
 
 \end{figure}
 
@@ -664,7 +668,7 @@ Figure~\ref{fig-individualdippers}.
 Following Meese et al. (2006), we also inspected the slope of the
 psychometric function for each condition (see
 Figure~\ref{fig-dipperfig}d-f). At detection threshold, slopes were
-relatively steep for all stimuli, with \(\beta\) values around 4. As
+relatively steep for all stimuli, with values around \(\beta=4\). As
 pedestal contrasts increased, slopes linearized and reduced to around
 \(\beta=1.3\) (Foley \& Legge, 1981; Meese et al., 2006), and remained
 shallow at high pedestal contrasts. The exception to this was the
@@ -677,7 +681,8 @@ observe that slope estimates are more variable than threshold estimates
 staircases, which deploy the majority of trials close to threshold. Our
 second experiment therefore investigated the slope of the psychometric
 function in more detail for dichoptic masking using the method of
-constant stimuli.
+constant stimuli, as well as exploring dichoptic interactions between
+chromatic channels.
 
 \hypertarget{experiment-2}{%
 \subsection{Experiment 2}\label{experiment-2}}
@@ -748,8 +753,8 @@ off-diagonal values).
 \subsection{Experiment 3}\label{experiment-3}}
 
 In our final experiment, we again measured dipper functions, but this
-time for a temporally modulating luminance disc. This was motivated by
-our recent work (Segala et al., 2023) that appeared to show increased
+time for a disc temporally modulating in luminance. This was motivated
+by our recent work (Segala et al., 2023) that appeared to show increased
 binocular facilitation and reduced interocular suppression for
 flickering disc stimuli (relative to gratings), measured using EEG and a
 psychophysical matching paradigm. The pattern of dipper functions for a
@@ -814,7 +819,7 @@ For consistency with previous work, we initially performed least-squares
 fits of the two-stage model (Meese et al., 2006) for each of the
 chromaticity experiments, and the flickering disc experiment (7 free
 parameters per fit). The best model fits are shown by the curves in
-Figure~\ref{fig-dipperfig} \& Figure~\ref{fig-discdata}, and provide an
+Figure~\ref{fig-dipperfig} and Figure~\ref{fig-discdata}, and provide an
 excellent description of the data, with RMS errors between 1.06 and
 1.59dB. Best fitting parameters are shown in the `Simplex fits' section
 of Table~\ref{tbl-parametertable}. We note that in previous work, the
@@ -851,8 +856,8 @@ suppression (\(\omega\), top right panel) overlaps 1 for each
 experiment, consistent with the strong dichoptic masking observed in the
 threshold data. We note that the distribution for \(\omega\) in the
 flickering disc condition is somewhat lower than for the other three
-data sets. However this difference is not meaningful according to
-criteria such as comparing the 95\% credible intervals of the
+data sets. However this difference is not meaningful according to widely
+accepted criteria such as comparing the 95\% intervals of the
 distribution to a value of \(\omega=1\).
 
 \begin{figure}
@@ -879,34 +884,37 @@ Figure~\ref{fig-MCSmodel} shows the model curves (panels a-c), which
 correspond closely to the data in Figure~\ref{fig-MCSfig}. One striking
 discrepancy is that the model predicts a region of negative d-prime for
 the case where the target and dichoptic mask have the same chromaticity
-(see the curved regions below 50\% correct). This feature was not
-generally present in our data, though it can be observed for one
-participant in Figure~\ref{fig-individualMCS}b,c.~Our previous work
-(Baker et al., 2013) has found evidence for this phenomenon (termed
-`swan functions'), but it generally requires very high mask contrasts to
-be measurable empirically, and there may also be some individual
-differences; both factors might explain its absence here.
+(see the curved regions below 50\% correct). This happens in the model
+because low contrast targets suppress the mask more than they excite the
+detecting mechanism, producing a net decrease in response. The feature
+(termed a `swan function') was not generally present in our empirical
+data, though it can be observed for one participant in
+Figure~\ref{fig-individualMCS}b,c.~Our previous work (Baker et al.,
+2013) has found evidence for this phenomenon, but it generally requires
+very high mask contrasts to be measurable empirically, and there may
+also be some individual differences; both factors might explain its
+absence here.
 
 Figure~\ref{fig-MCSmodel}d,e shows the model estimates for the weight of
 interocular suppression in each combination of target and mask
 chromaticity. Although the weights might appear to indicate that
 (excluding within-mechanism effects) suppression is strongest between
 blue/yellow targets and achromatic masks (a weight of 0.56), this is
-somewhat complicated by the differences in sensitivity and mask contrast
-between conditions. We selected mask contrasts that were approximately
-equal multiples (\(16\times\)) of their own detection thresholds, based
-on the data of Experiment 1 (Figure~\ref{fig-dipperfig}a-c). However the
+somewhat complicated by the differences in mask contrast between
+conditions. We selected mask contrasts that were approximately equal
+multiples (\(16\times\)) of their own detection thresholds, based on the
+data of Experiment 1 (Figure~\ref{fig-dipperfig}a-c). However the
 modelling expressed these contrasts as a percentage of the maximum
 contrast that it was possible to display on the monitor (see
 Procedures). The values in brackets in Figure~\ref{fig-MCSmodel}d
-indicate the overall suppressive term on the denominator, calculated by
-multiplying the mask contrast by the fitted weight. These values
-indicate that the strongest suppression is instead between red/green
-targets and blue/yellow masks, consistent with the threshold elevation
-observed empirically (Figure~\ref{fig-MCSfig}g). In principle it would
-be possible to repeat this modelling using either cone contrast values,
-or contrast expressed relative to detection threshold, which would
-require re-fitting the model.
+indicate the overall suppressive term on the denominator of the model at
+stage 1, calculated by multiplying the mask contrast by the fitted
+weight. These values indicate that the strongest suppression is instead
+between red/green targets and blue/yellow masks, consistent with the
+threshold elevation observed empirically (Figure~\ref{fig-MCSfig}g). In
+principle it would be possible to repeat this modelling using either
+cone contrast values, or contrast expressed relative to detection
+threshold, which would require re-fitting the model.
 
 \begin{figure}
 
@@ -951,18 +959,18 @@ likely physiological substrates of these effects.
 \subsection{Summation at threshold}\label{summation-at-threshold}}
 
 Estimates of the binocular summation ratio at threshold fell within the
-range \(\sqrt{2}\) to 2 for all four data sets. Consistent with previous
-reports (Simmons, 2005), summation was slightly higher for chromatic
-versus achromatic stimuli, but fell short of perfect linear summation (a
-ratio of 2). In our model, summation at threshold is determined by the
-exponent at the first gain control stage (the \emph{m} parameter in
-Equations 1 \& 2). The summation ratio can be approximated by
-\(2^{1/m}\) (see Figure 9 of Baker et al., 2012), such that an exponent
-of \(m=1\) produces a ratio of 2, and an exponent of \(m = 2\) produces
-a ratio of \(\sqrt{2}\). Both the simplex and Bayesian model fits (see
-Table~\ref{tbl-parametertable}) generated parameter estimates in the
-range \(1 < m < 1.4\), consistent with the high levels of summation
-observed empirically.
+range \(\sqrt{2}\) to 2 for all four stimuli tested here. Consistent
+with previous reports (Simmons, 2005), summation was slightly higher for
+chromatic versus achromatic stimuli, but fell short of perfect linear
+summation (a ratio of 2). In our model, summation at threshold is
+determined by the exponent at the first gain control stage (the \emph{m}
+parameter in Equations 1 \& 2). The summation ratio can be approximated
+by \(2^{1/m}\) (see Figure 9 of Baker et al., 2012), such that an
+exponent of \(m=1\) produces a ratio of 2, and an exponent of \(m = 2\)
+produces a ratio of \(\sqrt{2}\). Both the simplex and Bayesian model
+fits (see Table~\ref{tbl-parametertable}) generated parameter estimates
+in the range \(1 < m < 1.4\), consistent with the high levels of
+summation observed empirically.
 
 \hypertarget{interocular-suppression}{%
 \subsection{Interocular suppression}\label{interocular-suppression}}
@@ -998,7 +1006,7 @@ although it is much less widely reported than threshold measures. In
 particular, pedestal masking linearizes the slope (Foley \& Legge, 1981;
 Meese et al., 2006), and within-channel dichoptic masking produces very
 steep slopes (Baker et al., 2013; Meese et al., 2006). We replicate both
-of these effects here, and show that they extend to isoluminant
+of these effects here, and show that they extend to the isoluminant
 chromatic pathways (see Figure~\ref{fig-dipperfig}d-f \&
 Figure~\ref{fig-MCSfig}). We additionally show that dichoptic masking
 between different pathways does not produce unusually steep slopes (see
@@ -1022,8 +1030,8 @@ model (Equations 1 \& 2). In terms of perception, one consequence of
 this early suppression is to achieve `ocularity invariance', whereby the
 perceived contrast of a stimulus viewed by one eye is equivalent to that
 of the same stimulus viewed by both eyes (Baker et al., 2007). Similar
-processes of invariance have also been reported using fMRI (Moradi \&
-Heeger, 2009) and steady-state EEG (Baker \& Wade, 2017).
+processes of response invariance have also been reported using fMRI
+(Moradi \& Heeger, 2009) and steady-state EEG (Baker \& Wade, 2017).
 
 In V1, chromatic stimuli are processed in `blob' regions that are
 largely monocular as they fall within ocular dominance columns
