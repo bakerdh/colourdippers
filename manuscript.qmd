@@ -28,7 +28,7 @@ header-includes:
 
 ```{r setup, include=FALSE}
 
-processdata <- 1
+processdata <- 0
 # the processdata flag has three settings:
 # 0: do no analysis, just produce the pdf of the manuscript
 # 1: fit psychometric functions and plot graphs

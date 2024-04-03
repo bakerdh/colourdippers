@@ -13,7 +13,7 @@ RUN apt-get -y install python3-venv
 
 RUN install2.r –error \
 --deps TRUE \
-rmarkdown \
+quarto \
 reticulate \
 knitr \
 osfr \

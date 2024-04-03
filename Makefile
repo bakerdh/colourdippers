@@ -5,5 +5,5 @@ document:
 	docker-compose run --rm document
 
 document-docker: 
-	R -e "xfun::pkg_attach2('rmarkdown')"
-	R -e "rmarkdown::render('manuscript.qmd', output_format='pdf_document')"
+	R -e "xfun::pkg_attach2('quarto')"
+	R -e "quarto::quarto_render('manuscript.qmd')"
