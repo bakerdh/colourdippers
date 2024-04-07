@@ -1,30 +1,34 @@
 ---
 title: "Binocular integration of chromatic and luminance signals"
 author:
-  - Daniel H. Baker
-  - Kirralise J. Hansford
-  - Federico G. Segala
-  - Annie Y. Morsi
-  - Rowan J. Huxley
-  - Joel T. Martin
-  - Maya Rockman
-  - Alex R. Wade
+  - name: Daniel H. Baker$^{1,2,*}$
+  - name: Kirralise J. Hansford$^1$
+  - name: Federico G. Segala$^1$
+  - name: Annie Y. Morsi$^1$
+  - name: Rowan J. Huxley$^{1,3}$
+  - name: Joel T. Martin$^{1,4}$
+  - name: Maya Rockman$^1$
+  - name: Alex R. Wade$^{1,2}$
+pdf-engine: xelatex
+bibliography: references.bib
+csl: journal-of-vision.csl
 format:
   pdf:
     keep-tex: true
-  # docx:
-  #   toc: false
-  #   number-sections: true
-# prefer-html: true
-pdf-engine: xelatex
-# execute:
-#   echo: false
-bibliography: references.bib
-csl: journal-of-vision.csl
 header-includes: 
   \usepackage{float} \floatplacement{figure}{H} 
   \newcommand{\beginsupplement}{\setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
 ---
+
+$^1$Department of Psychology, University of York, UK
+
+$^2$York Biomedical Research Institute, University of York, UK
+
+$^3$School of Psychology, University of Nottingham, UK
+
+$^4$School of Philosophy, Psychology and Language Sciences, University of Edinburgh, UK
+
+$^*$Corresponding author, email: daniel.baker\@york.ac.uk
 
 ```{r setup, include=FALSE}
 
@@ -2308,6 +2312,10 @@ dev.off()
 
 # Abstract
 
+Much progress has been made in understanding how the brain combines signals from the two eyes. However most of this work has involved achromatic (black and white) stimuli, and it is not clear if the same processes apply in colour-sensitive pathways. In our first experiment, we measured contrast discrimination ('dipper') functions for four key ocular configurations (monocular, binocular, half-binocular and dichoptic), for achromatic, isoluminant red/green and isoluminant blue/yellow sine-wave grating stimuli. We find a similar pattern of results across stimuli, implying equivalently strong interocular suppression within each pathway. Our second experiment measured dichoptic masking within and between pathways using the method of constant stimuli. Masking was strongest within-pathway, and weakest between chromatic and achromatic mechanisms. Finally, we repeated the dipper experiment using temporal luminance modulations, which produced slightly weaker interocular suppression than for spatially modulated stimuli. We interpret our results in the context of a contemporary two-stage model of binocular contrast gain control, implemented here using a hierarchical Bayesian framework. Posterior distributions of the weight of interocular suppression overlapped with a value of 1 for all dipper data sets, and the model captured well the pattern of threshold and slope values from all three experiments.
+
+**Keywords**: *isoluminant*, *dichoptic*, *binocular interactions*, *gain control*, *summation*, *suppression*, *masking*, *psychophysics*
+
 # Introduction
 
 The process by which the brain combines independent inputs is of fundamental importance for understanding sensory perception. Binocular vision is a useful test-case for determining the general principles involved in neural signal combination, as our brains typically combine the inputs from the left and right eyes to provide binocular single vision. In recent years our understanding has been facilitated by the development of binocular gain control models that provide a framework to interpret empirical data from multiple experimental paradigms and techniques, including psychophysics [@Meese2006], EEG [@Baker2017], fMRI [@Moradi2009] and pupillometry [@Segala2023]. However, the majority of this work has used achromatic (black and white) stimuli; we know comparatively little about how chromatic signals are combined binocularly, or about how signals in different ocular and chromatic channels interact. In this study we use psychophysical detection and discrimination paradigms to explore binocular interactions within and between the chromatic and achromatic pathways.
@@ -2320,9 +2328,9 @@ The detailed pattern of thresholds across these four conditions is complex, and 
 
 At the output of the human retina, cone responses are split into three distinct pathways. The sum of long- and medium-wavelength cone outputs (L+M) transmits luminance information, and is likely responsible for the binocular combination effects previously studied using achromatic stimuli (see above). The difference of long- and medium-wavelength cone outputs (L-M) is responsive to chromatic stimuli modulating along a red/green axis in colour space. Finally the short wavelength cone outputs (S-(L+M)) code chromatic stimuli modulating along a blue/yellow axis. There has not yet been a detailed investigation of binocular contrast discrimination in either of these chromatic pathways, however there is reason to believe they may differ from the achromatic pathway. At detection threshold, binocular summation is greater for chromatic versus achromatic stimuli [@Simmons2005], implying a more linear initial stage of processing. For cross-orientation masking, there are differences in the magnitude of masking between chromatic (red/green) and achromatic stimuli [@Kim2013; @Medina2009], as well as differences in their temporal dynamics [@Kim2015]. There are also interactions between chromatic and achromatic pathways both within [@Chen2000] and between [@Mullen2014; @Kingdom2015] the eyes, yet these have not been fully explored for arrangements where the target and mask have the same orientation. Finally, the neurophysiological underpinnings of colour vision are distinct from those of the achromatic system. In primary visual cortex (V1), chromatic signals are processed in 'blob' regions that are revealed by cytochrome oxidase staining [@Horton1981]. The blob regions appear to be largely monocular [@Livingstone1984], suggesting that binocular combination for chromatic stimuli might occur later than for achromatic stimuli, and perhaps be subject to different constraints.
 
-A further property of 'blob' regions is that they are less strongly orientation-tuned than other regions of V1 [@Horton1981; @Livingstone1984], and biased towards low spatial frequencies [@Edwards1995; @Tootell1988]. Our recent work has investigated binocular combination for flickering discs of luminance, which are DC-balanced across time [@Segala2023]. Steady-state EEG responses from early visual cortex and psychophysical contrast matching data were both consistent with weak interocular suppression when using this stimulus arrangement. This is very different from the 'ocularity invariance' (where binocular and monocular stimuli appear equal) that is well-established when using DC-balanced periodic stimuli such as sine-wave gratings, and implies strong interocular suppression [@Meese2006; @Baker2017; @Moradi2009]. There is additional psychophysical evidence from matching studies that binocular combination can be close to linear for luminance increments [@Levelt1965; @Anstis1998], particularly against a dark background [@Baker2012]. Both structural and functional data therefore imply that binocular combination may differ between spatial and temporal contrast.
+A further property of 'blob' regions is that they are less strongly orientation-tuned than other regions of V1 [@Horton1981; @Livingstone1984], and biased towards low spatial frequencies [@Edwards1995; @Tootell1988]. Our recent work [@Segala2023] has investigated binocular combination for flickering discs of luminance, which are DC-balanced across time (i.e. the time-averaged luminance is equal to the background). Steady-state EEG responses from early visual cortex and psychophysical contrast matching data were both consistent with weak interocular suppression when using this stimulus arrangement. This is very different from the 'ocularity invariance' (where binocular and monocular stimuli appear equal) that is well-established when using DC-balanced periodic stimuli such as sine-wave gratings, and implies strong interocular suppression [@Meese2006; @Baker2017; @Moradi2009]. There is additional psychophysical evidence from matching studies that binocular combination can be close to linear for luminance increments [@Levelt1965; @Anstis1998], particularly against a dark background [@Baker2012]. Both structural and functional data therefore imply that binocular combination may differ between spatial and temporal contrast.
 
-The main aim of the present study is to characterise binocular signal combination for chromatic stimuli, and for temporal modulations of luminance. We also aimed to investigate interocular suppression between chromatic and achromatic pathways. We therefore preregistered a series of psychophysical experiments (see: [https://osf.io/3vdga/](https://osf.io/3vdga/)). In Experiment 1 we replicate the four key pedestal masking conditions of @Meese2006 described above for achromatic grating stimuli, and extend this to both red/green and blue/yellow isoluminant chromatic stimuli. In Experiment 2 we explore dichoptic masking within and between these stimuli. Experiment 3 repeats the achromatic condition from the first experiment, but using a temporally modulated disc rather than sine-wave gratings. We take a Bayesian approach to data analysis and modelling; by fitting a hierarchical version of the two-stage gain control model [@Meese2006] we compare posterior parameter distributions to understand how model parameters such as the weight of interocular suppression vary across visual pathways.
+The main aim of the present study was to characterise binocular signal combination for chromatic stimuli, and for temporal modulations of luminance. We also aimed to investigate interocular suppression between chromatic and achromatic pathways. We therefore preregistered a series of psychophysical experiments (see: [https://osf.io/3vdga/](https://osf.io/3vdga/)). In Experiment 1 we replicate the four key pedestal masking conditions of @Meese2006 described above for achromatic grating stimuli, and extend this to both red/green and blue/yellow isoluminant chromatic stimuli. In Experiment 2 we explore dichoptic masking within and between these stimuli. Experiment 3 repeats the achromatic condition from the first experiment, but using a temporally modulated disc rather than sine-wave gratings. We take a Bayesian approach to data analysis and modelling; by fitting a hierarchical version of the two-stage gain control model [@Meese2006] we compare posterior parameter distributions to understand how model parameters such as the weight of interocular suppression vary across visual pathways.
 
 # Materials & Methods
 
