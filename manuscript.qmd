@@ -28,7 +28,7 @@ $^*$Corresponding author, email: daniel.baker\@york.ac.uk
 
 ```{r setup, include=FALSE}
 
-processdata <- 0
+processdata <- 1
 # the processdata flag has three settings:
 # 0: do no analysis, just produce the pdf of the manuscript
 # 1: fit psychometric functions and plot graphs
@@ -761,8 +761,8 @@ if (processdata>0){
   axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
   mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
   mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
-  title(xlab="Normalized pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
-  title(ylab="Normalized threshold (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+  title(xlab="Normalized pedestal contrast", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+  title(ylab="Normalized threshold", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
   title(main='(a) Flickering disc (thresholds)',cex.main=1.5)
   
   
@@ -786,7 +786,7 @@ if (processdata>0){
   axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
   mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
   mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
-  title(xlab="Normalized pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+  title(xlab="Normalized pedestal contrast", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
   title(ylab=expression(paste('Weibull ', beta)), col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
   title(main='(b) Flickering disc (slopes)',cex.main=1.5)
   
@@ -2185,8 +2185,8 @@ axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
 axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
 mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
 mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
-title(xlab="Normalized pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
-title(ylab="Normalized threshold (%)", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
+title(xlab="Normalized pedestal contrast", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Normalized threshold", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
 title(main=paste0('(',letters[(3*(p-1)+1)],')  P',p,': Achromatic'),cex.main=2)
 
 pedcontrasts <- seq(-12,30,6)-allthresh[p,1,1,1]
@@ -2206,8 +2206,8 @@ axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
 axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
 mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)    
 mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
-title(xlab="Normalized pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
-title(ylab="Normalized threshold (%)", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
+title(xlab="Normalized pedestal contrast", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Normalized threshold", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
 title(main=paste0('(',letters[(3*(p-1)+2)],')  P',p,': Red/Green'),cex.main=2)
 
 pedcontrasts <- c(-12,seq(0,36,6))-allthresh[p,2,1,1]
@@ -2225,8 +2225,8 @@ axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
 axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
 mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
 mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
-title(xlab="Normalized pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
-title(ylab="Normalized threshold (%)", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
+title(xlab="Normalized pedestal contrast", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)
+title(ylab="Normalized threshold", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
 title(main=paste0('(',letters[(3*(p-1)+3)],')  P',p,': Blue/Yellow'),cex.main=2)
 
 pedcontrasts <- c(-12,seq(0,36,6))-allthresh[p,3,1,1]
@@ -2267,7 +2267,7 @@ for (p in 1:3){
   axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
   mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.5)     # add the tick labels
   mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
-  title(xlab="Normalized target contrast (%)", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)    # titles for axes
+  title(xlab="Normalized target contrast", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)    # titles for axes
   title(ylab="Percent correct", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
   title(main=titlelist[3*(p-1)+cond],cex.main=2)
   
@@ -2314,8 +2314,8 @@ axis(1, at=ticklocsx, tck=0.01, lab=F, lwd=2)     # plot tick marks (no labels)
 axis(2, at=ticklocsy, tck=0.01, lab=F, lwd=2)
 mtext(text = ticklabelsx, side = 1, at=ticklocsx, line=0.3)     
 mtext(text = ticklabelsy, side = 2, at=ticklocsy, line=0.2, las=1)
-title(xlab="Normalized pedestal contrast (%)", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
-title(ylab="Normalized threshold (%)", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
+title(xlab="Normalized pedestal contrast", col.lab=rgb(0,0,0), line=1.5, cex.lab=1.5)   
+title(ylab="Normalized threshold", col.lab=rgb(0,0,0), line=2, cex.lab=1.5)
 title(main=paste0('(',letters[p],')  P', pnos[p] ,': Flickering disc'),cex.main=2)
 
 pedcontrasts <- seq(-12,30,6)-allthresh3[p,1,1]
