@@ -539,21 +539,13 @@ between the model and data. We normalized the thresholds and pedestal
 contrasts to the appropriate monocular threshold for each stimulus type.
 The model is defined by a series of equations:
 
-\begin{equation}
-Stage1_L = \frac{C_L^m}{S + C_L + \omega C_R},
-\end{equation}
+\begin{equation}\protect\hypertarget{eq-s1l}{}{\mathrm{Stage1}_L = \frac{C_L^m}{S + C_L + \omega C_R},}\label{eq-s1l}\end{equation}
 
-\begin{equation}
-Stage1_R = \frac{C_R^m}{S + C_R + \omega C_L},
-\end{equation}
+\begin{equation}\protect\hypertarget{eq-s1r}{}{\mathrm{Stage1}_R = \frac{C_R^m}{S + C_R + \omega C_L},}\label{eq-s1r}\end{equation}
 
-\begin{equation}
-binsum = Stage1_L + Stage1_R,
-\end{equation}
+\begin{equation}\protect\hypertarget{eq-binsum}{}{\mathrm{binsum} = \mathrm{Stage1}_L + \mathrm{Stage1}_R,}\label{eq-binsum}\end{equation}
 
-\begin{equation}
-Stage2 = \frac{binsum^p}{Z + binsum^q},
-\end{equation}
+\begin{equation}\protect\hypertarget{eq-s2}{}{\mathrm{Stage2} = \frac{\mathrm{binsum}^p}{Z + \mathrm{binsum}^q},}\label{eq-s2}\end{equation}
 
 where \(C_L\) and \(C_R\) are the (normalized) contrasts displayed to
 the left and right eyes, and \(m\), \(S\), \(\omega\), \(p\), \(q\) and
@@ -567,15 +559,14 @@ psychometric functions to estimate thresholds). Thresholds are defined
 by iteratively adjusting the target contrast until the following
 equality is satisfied:
 
-\begin{equation}
-Stage2_{target+pedestal} - Stage2_{pedestal} = k,
-\end{equation}
+\begin{equation}\protect\hypertarget{eq-thd}{}{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}} = k,}\label{eq-thd}\end{equation}
 
-and d-prime for a single target level is defined as:
+and \(d'\) (d-prime) for a single target level is defined as:
 
-\begin{equation}
-d' = \frac{Stage2_{target+pedestal} - Stage2_{pedestal}}{k}.
-\end{equation}
+\begin{equation}\protect\hypertarget{eq-dprime}{}{d' = \frac{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}}}{k/0.954},}\label{eq-dprime}\end{equation}
+
+where the constant 0.954 reflects the value of \(d'\) at the 75\%
+correct point on the psychometric function used to estimate threshold.
 
 We ran the simplex algorithm from 100 random starting vectors for each
 data set, and chose the solution for each data set that gave the
@@ -601,9 +592,7 @@ process achromatic, red/green and blue/yellow stimuli, that mutually
 suppress each other. We added additional suppressive terms at the first
 (monocular) stage of the model, for example:
 
-\begin{equation}
-ACStage1_L = \frac{AC_L^m}{S + AC_L + \omega_A AC_R + \omega_R RG_R + \omega_B BY_R},
-\end{equation}
+\begin{equation}\protect\hypertarget{eq-s1multi}{}{^{AC}\mathrm{Stage1}_L = \frac{AC_L^m}{S + AC_L + \omega_A AC_R + \omega_R RG_R + \omega_B BY_R},}\label{eq-s1multi}\end{equation}
 
 where \emph{AC} represents the achromatic contrast, \emph{RG} represents
 the red/green contrast, \emph{BY} represents the blue/yellow contrast,
@@ -839,10 +828,10 @@ Blue/yellow gratings & 16.01 & 11.56 & 1.13 & 0.33 & 0.00 & 0.99 & 0.27 & 1.46 d
 Flickering discs & 5.62 & 4.51 & 1.26 & 0.95 & 0.25 & 0.89 & 0.13 & 1.05 dB\\
 \midrule
 \textbf{Bayesian model} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{}\\
-Achromatic gratings & 7.12 & 5.79 & 1.27 & 0.65 & 0.07 & 0.99 & 0.31 & \\
-Red/green gratings & 5.25 & 3.60 & 1.23 & 1.27 & 0.03 & 1.05 & 0.20 & \\
-Blue/yellow gratings & 6.78 & 5.17 & 1.24 & 0.58 & 0.01 & 0.96 & 0.36 & \\
-Flickering discs & 7.21 & 5.75 & 1.25 & 0.69 & 0.13 & 0.88 & 0.26 & \\
+Achromatic gratings & 7.06 & 5.63 & 1.27 & 0.63 & 0.08 & 0.98 & 0.30 & \\
+Red/green gratings & 5.11 & 3.63 & 1.24 & 1.22 & 0.03 & 1.05 & 0.19 & \\
+Blue/yellow gratings & 6.78 & 5.34 & 1.24 & 0.61 & 0.01 & 0.95 & 0.34 & \\
+Flickering discs & 7.16 & 5.76 & 1.25 & 0.65 & 0.13 & 0.87 & 0.24 & \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -861,14 +850,15 @@ a value very close to 1 in all of our grating conditions, and slightly
 below 1 (0.89) for our flickering discs. The exponent values (\emph{p}
 and \emph{q}) for the blue/yellow gratings are rather different from
 those of the other conditions. In previous work (Meese et al., 2006) the
-second stage gain control nonlinearity (Equation 4) does typically have
-quite substantial exponent values, which balance the relatively mild
-nonlinearity at the first stage, and produce a compressive transducer
-that results in contrast masking (the handle of the dipper). The high
-value of \emph{p} = 16.01 is therefore likely to be compensating for the
-low value of \emph{m} = 1.13 at stage one, but may well represent the
-combination of several successive stages of nonlinearity, and perhaps
-also other phenomena such as uncertainty (Pelli, 1985).
+second stage gain control nonlinearity (Equation~\ref{eq-s2}) does
+typically have quite substantial exponent values, which balance the
+relatively mild nonlinearity at the first stage, and produce a
+compressive transducer that results in contrast masking (the handle of
+the dipper). The high value of \emph{p} = 16.01 is therefore likely to
+be compensating for the low value of \emph{m} = 1.13 at stage one, but
+may well represent the combination of several successive stages of
+nonlinearity, and perhaps also other phenomena such as uncertainty
+(Pelli, 1985).
 
 We additionally implemented a hierarchical Bayesian version of the model
 to estimate full posterior parameter distributions. This model was fit
@@ -986,24 +976,26 @@ with previous reports (Simmons, 2005), summation was slightly higher for
 chromatic versus achromatic stimuli, but fell short of perfect linear
 summation (a ratio of 2). In our model, summation at threshold is
 determined by the exponent at the first gain control stage (the \emph{m}
-parameter in Equations 1 \& 2). The summation ratio can be approximated
-by \(2^{1/m}\) (see Figure 9 of Baker et al., 2012), such that an
-exponent of \(m=1\) produces a ratio of 2, and an exponent of \(m = 2\)
-produces a ratio of \(\sqrt{2}\). Both the simplex and Bayesian model
-fits (see Table~\ref{tbl-parametertable}) generated parameter estimates
-in the range \(1 < m < 1.4\), consistent with the high levels of
-summation observed empirically.
+parameter in Equation~\ref{eq-s1l} and Equation~\ref{eq-s1r}). The
+summation ratio can be approximated by \(2^{1/m}\) (see Figure 9 of
+Baker et al., 2012), such that an exponent of \(m=1\) produces a ratio
+of 2, and an exponent of \(m = 2\) produces a ratio of \(\sqrt{2}\).
+Both the simplex and Bayesian model fits (see
+Table~\ref{tbl-parametertable}) generated parameter estimates in the
+range \(1 < m < 1.4\), consistent with the high levels of summation
+observed empirically.
 
 \hypertarget{interocular-suppression}{%
 \subsection{Interocular suppression}\label{interocular-suppression}}
 
 The weight of interocular suppression is represented by the model
-parameter, \(\omega\) (Equations 1 \& 2). Posterior distributions of
-this parameter overlapped 1 for all of our dipper function data sets
-(see top right panel in Figure~\ref{fig-bayesianmodel}), indicating
-strong interocular suppression regardless of post-retinal pathway. The
-flickering disc stimuli produced a slightly lower suppression estimate,
-with \(\omega \sim 0.9\). This may indicate slightly weaker suppression
+parameter, \(\omega\) (Equation~\ref{eq-s1l} and Equation~\ref{eq-s1r}).
+Posterior distributions of this parameter overlapped 1 for all of our
+dipper function data sets (see top right panel in
+Figure~\ref{fig-bayesianmodel}), indicating strong interocular
+suppression regardless of post-retinal pathway. The flickering disc
+stimuli produced a slightly lower suppression estimate, with
+\(\omega \sim 0.9\). This may indicate slightly weaker suppression
 between the eyes for temporal modulations, but it is much less extreme
 than our recent estimates using EEG and matching paradigms (Segala et
 al., 2023). One difference between these studies is the luminance of the
@@ -1048,12 +1040,13 @@ monocularly excitable, in that their responses increase only by
 stimulation of their preferred eye. However, simultaneous stimulation of
 the non-preferred eye can modulate the response, usually in an
 inhibitory fashion, exactly as proposed at stage 1 of the two-stage
-model (Equations 1 \& 2). In terms of perception, one consequence of
-this early suppression is to achieve `ocularity invariance', whereby the
-perceived contrast of a stimulus viewed by one eye is equivalent to that
-of the same stimulus viewed by both eyes (Baker et al., 2007). Similar
-processes of response invariance have also been reported using fMRI
-(Moradi \& Heeger, 2009) and steady-state EEG (Baker \& Wade, 2017).
+model (Equation~\ref{eq-s1l} and Equation~\ref{eq-s1r}). In terms of
+perception, one consequence of this early suppression is to achieve
+`ocularity invariance', whereby the perceived contrast of a stimulus
+viewed by one eye is equivalent to that of the same stimulus viewed by
+both eyes (Baker et al., 2007). Similar processes of response invariance
+have also been reported using fMRI (Moradi \& Heeger, 2009) and
+steady-state EEG (Baker \& Wade, 2017).
 
 In V1, chromatic stimuli are processed in `blob' regions that are
 largely monocular as they fall within ocular dominance columns

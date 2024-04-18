@@ -28,7 +28,7 @@ $^*$Corresponding author, email: daniel.baker\@york.ac.uk
 
 ```{r setup, include=FALSE}
 
-processdata <- 1
+processdata <- 0
 # the processdata flag has three settings:
 # 0: do no analysis, just produce the pdf of the manuscript
 # 1: fit psychometric functions and plot graphs
@@ -65,6 +65,9 @@ if (processdata>0){
   # calculate constant to scale the slope parameter to the Gaussian SD
   C <- ps$utils$my_norminv(1-0.05,0,1) - ps$utils$my_norminv(0.05,0,1)
 }
+
+# calculate d-prime at 75% correct threshold
+thdcriteria <- qnorm(0.75)*sqrt(2)
 
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -813,7 +816,7 @@ summationDisc <- meanthresh3[1,1] - meanthresh3[2,1]
 
 ```{r stanmodelspecification, include=FALSE}
 
-modelString = "
+modelString = paste0("
   data {
     int<lower=1> Ndatasets ;
     int<lower=1> Ntotal ;
@@ -917,7 +920,7 @@ modelString = "
     targresp = pow((Lt + Rt), (p[s[i]]+q[s[i]])) / (Z[s[i]] + pow((Lt + Rt), q[s[i]])) ;
     nullresp = pow((Ln + Rn), (p[s[i]]+q[s[i]])) / (Z[s[i]] + pow((Ln + Rn), q[s[i]])) ;     
 
-    dprime = (targresp-nullresp)/k[s[i]] ;
+    dprime = (targresp-nullresp)/(k[s[i]]/",thdcriteria,") ;
     if (is_nan(dprime)){
        dprime = 0;
     }
@@ -930,7 +933,7 @@ modelString = "
     ncorrect[i] ~ binomial(ntrials[i], Phi(dprime/sqrt(2))) ;
     }
   }  
-" # close quote for modelString
+") # close quote for modelString
 
 ```
 
@@ -1488,7 +1491,7 @@ crossmodelString = paste0("
     
     targresp = pow((Lt + Rt), ",allstanparams[1,1],") / (ZAc[s[i]] + pow((Lt + Rt), ",allstanparams[1,2],")) ;
     nullresp = pow((Ln + Rn), ",allstanparams[1,1],") / (ZAc[s[i]] + pow((Ln + Rn), ",allstanparams[1,2],")) ;     
-    dprime = (targresp-nullresp)/",allstanparams[1,7]," ;
+    dprime = (targresp-nullresp)/(",allstanparams[1,7],"/",thdcriteria,") ;
 
     }
           
@@ -1500,7 +1503,7 @@ crossmodelString = paste0("
     
     targresp = pow((Lt + Rt), ",allstanparams[2,1],") / (ZRg[s[i]] + pow((Lt + Rt), ",allstanparams[2,2],")) ;
     nullresp = pow((Ln + Rn), ",allstanparams[2,1],") / (ZRg[s[i]] + pow((Ln + Rn), ",allstanparams[2,2],")) ;     
-    dprime = (targresp-nullresp)/",allstanparams[2,7]," ;
+    dprime = (targresp-nullresp)/(",allstanparams[2,7],"/",thdcriteria,") ;
 
     }
     
@@ -1512,7 +1515,7 @@ crossmodelString = paste0("
     
     targresp = pow((Lt + Rt), ",allstanparams[3,1],") / (ZBy[s[i]] + pow((Lt + Rt), ",allstanparams[3,2],")) ;
     nullresp = pow((Ln + Rn), ",allstanparams[3,1],") / (ZBy[s[i]] + pow((Ln + Rn), ",allstanparams[3,2],")) ;     
-    dprime = (targresp-nullresp)/",allstanparams[3,7]," ;
+    dprime = (targresp-nullresp)/(",allstanparams[3,7],"/",thdcriteria,") ;
 
     }
     
@@ -1524,7 +1527,7 @@ crossmodelString = paste0("
       
       targresp = pow((Lt + Rt), ",allstanparams[1,1],") / (ZAc[s[i]] + pow((Lt + Rt), ",allstanparams[1,2],")) ;
       nullresp = pow((Ln + Rn), ",allstanparams[1,1],") / (ZAc[s[i]] + pow((Ln + Rn), ",allstanparams[1,2],")) ;     
-      dprime = (targresp-nullresp)/",allstanparams[1,7]," ;
+      dprime = (targresp-nullresp)/(",allstanparams[1,7],"/",thdcriteria,") ;
 
     }
     
@@ -1536,7 +1539,7 @@ crossmodelString = paste0("
       
       targresp = pow((Lt + Rt), ",allstanparams[2,1],") / (ZRg[s[i]] + pow((Lt + Rt), ",allstanparams[2,2],")) ;
       nullresp = pow((Ln + Rn), ",allstanparams[2,1],") / (ZRg[s[i]] + pow((Ln + Rn), ",allstanparams[2,2],")) ;     
-      dprime = (targresp-nullresp)/",allstanparams[2,7]," ;
+      dprime = (targresp-nullresp)/(",allstanparams[2,7],"/",thdcriteria,") ;
     }
 
     if (c[i]==6) { // blue/yellow target, achromatic mask
@@ -1547,7 +1550,7 @@ crossmodelString = paste0("
       
       targresp = pow((Lt + Rt), ",allstanparams[3,1],") / (ZBy[s[i]] + pow((Lt + Rt), ",allstanparams[3,2],")) ;
       nullresp = pow((Ln + Rn), ",allstanparams[3,1],") / (ZBy[s[i]] + pow((Ln + Rn), ",allstanparams[3,2],")) ;     
-      dprime = (targresp-nullresp)/",allstanparams[3,7]," ;
+      dprime = (targresp-nullresp)/(",allstanparams[3,7],"/",thdcriteria,") ;
     }    
     
     
@@ -1559,7 +1562,7 @@ crossmodelString = paste0("
       
       targresp = pow((Lt + Rt), ",allstanparams[1,1],") / (ZAc[s[i]] + pow((Lt + Rt), ",allstanparams[1,2],")) ;
       nullresp = pow((Ln + Rn), ",allstanparams[1,1],") / (ZAc[s[i]] + pow((Ln + Rn), ",allstanparams[1,2],")) ;     
-      dprime = (targresp-nullresp)/",allstanparams[1,7]," ;
+      dprime = (targresp-nullresp)/(",allstanparams[1,7],"/",thdcriteria,") ;
 
     }
     
@@ -1571,7 +1574,7 @@ crossmodelString = paste0("
       
       targresp = pow((Lt + Rt), ",allstanparams[2,1],") / (ZRg[s[i]] + pow((Lt + Rt), ",allstanparams[2,2],")) ;
       nullresp = pow((Ln + Rn), ",allstanparams[2,1],") / (ZRg[s[i]] + pow((Ln + Rn), ",allstanparams[2,2],")) ;     
-      dprime = (targresp-nullresp)/",allstanparams[2,7]," ;
+      dprime = (targresp-nullresp)/(",allstanparams[2,7],"/",thdcriteria,") ;
     }
 
     if (c[i]==9) { // blue/yellow target, red/green mask
@@ -1582,7 +1585,7 @@ crossmodelString = paste0("
       
       targresp = pow((Lt + Rt), ",allstanparams[3,1],") / (ZBy[s[i]] + pow((Lt + Rt), ",allstanparams[3,4],")) ;
       nullresp = pow((Ln + Rn), ",allstanparams[3,1],") / (ZBy[s[i]] + pow((Ln + Rn), ",allstanparams[3,4],")) ;     
-      dprime = (targresp-nullresp)/",allstanparams[3,7]," ;
+      dprime = (targresp-nullresp)/(",allstanparams[3,7],"/",thdcriteria,") ;
     }      
     
     
@@ -1594,7 +1597,7 @@ crossmodelString = paste0("
       
       targresp = pow((Lt + Rt), ",allstanparams[1,1],") / (ZAc[s[i]] + pow((Lt + Rt), ",allstanparams[1,2],")) ;
       nullresp = pow((Ln + Rn), ",allstanparams[1,1],") / (ZAc[s[i]] + pow((Ln + Rn), ",allstanparams[1,2],")) ;     
-      dprime = (targresp-nullresp)/",allstanparams[1,7]," ;
+      dprime = (targresp-nullresp)/(",allstanparams[1,7],"/",thdcriteria,") ;
 
     }
     
@@ -1606,7 +1609,7 @@ crossmodelString = paste0("
       
       targresp = pow((Lt + Rt), ",allstanparams[2,1],") / (ZRg[s[i]] + pow((Lt + Rt), ",allstanparams[2,2],")) ;
       nullresp = pow((Ln + Rn), ",allstanparams[2,1],") / (ZRg[s[i]] + pow((Ln + Rn), ",allstanparams[2,2],")) ;     
-      dprime = (targresp-nullresp)/",allstanparams[2,7]," ;
+      dprime = (targresp-nullresp)/(",allstanparams[2,7],"/",thdcriteria,") ;
     }
 
     if (c[i]==12) { // blue/yellow target, blue/yellow mask
@@ -1617,7 +1620,7 @@ crossmodelString = paste0("
   
       targresp = pow((Lt + Rt), ",allstanparams[3,1],") / (ZBy[s[i]] + pow((Lt + Rt), ",allstanparams[3,2],")) ;
       nullresp = pow((Ln + Rn), ",allstanparams[3,1],") / (ZBy[s[i]] + pow((Ln + Rn), ",allstanparams[3,2],")) ;     
-      dprime = (targresp-nullresp)/",allstanparams[3,7]," ;
+      dprime = (targresp-nullresp)/(",allstanparams[3,7],"/",thdcriteria,") ;
     }      
     
     if (is_nan(dprime)){
@@ -1752,62 +1755,62 @@ predictpmfs <- function(p){
   
   tr <- getmodelresp3inputs(p,contrastsC,0,0,0,0,0)
   nr <- getmodelresp3inputs(p,0,0,0,0,0,0)
-  dprime <- (tr[1,] - nr[1,])/p[1,7]
+  dprime <- (tr[1,] - nr[1,])/(p[1,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[1,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,0,0,contrastsC,0,0,0)
   nr <- getmodelresp3inputs(p,0,0,0,0,0,0)
-  dprime <- (tr[2,] - nr[2,])/p[2,7]
+  dprime <- (tr[2,] - nr[2,])/(p[2,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[2,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,0,0,0,0,contrastsC,0)
   nr <- getmodelresp3inputs(p,0,0,0,0,0,0)
-  dprime <- (tr[3,] - nr[3,])/p[3,7]
+  dprime <- (tr[3,] - nr[3,])/(p[3,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[3,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,contrastsC,16,0,0,0,0)
   nr <- getmodelresp3inputs(p,0,16,0,0,0,0)
-  dprime <- (tr[1,] - nr[1,])/p[1,7]
+  dprime <- (tr[1,] - nr[1,])/(p[1,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[4,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,0,16,contrastsC,0,0,0)
   nr <- getmodelresp3inputs(p,0,16,0,0,0,0)
-  dprime <- (tr[2,] - nr[2,])/p[2,7]
+  dprime <- (tr[2,] - nr[2,])/(p[2,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[5,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,0,16,0,0,contrastsC,0)
   nr <- getmodelresp3inputs(p,0,16,0,0,0,0)
-  dprime <- (tr[3,] - nr[3,])/p[3,7]
+  dprime <- (tr[3,] - nr[3,])/(p[3,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[6,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,contrastsC,0,0,16,0,0)
   nr <- getmodelresp3inputs(p,0,0,0,16,0,0)
-  dprime <- (tr[1,] - nr[1,])/p[1,7]
+  dprime <- (tr[1,] - nr[1,])/(p[1,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[7,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,0,0,contrastsC,16,0,0)
   nr <- getmodelresp3inputs(p,0,0,0,16,0,0)
-  dprime <- (tr[2,] - nr[2,])/p[2,7]
+  dprime <- (tr[2,] - nr[2,])/(p[2,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[8,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,0,0,0,16,contrastsC,0)
   nr <- getmodelresp3inputs(p,0,0,0,16,0,0)
-  dprime <- (tr[3,] - nr[3,])/p[3,7]
+  dprime <- (tr[3,] - nr[3,])/(p[3,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[9,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,contrastsC,0,0,0,0,16)
   nr <- getmodelresp3inputs(p,0,0,0,0,0,16)
-  dprime <- (tr[1,] - nr[1,])/p[1,7]
+  dprime <- (tr[1,] - nr[1,])/(p[1,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[10,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,0,0,contrastsC,0,0,16)
   nr <- getmodelresp3inputs(p,0,0,0,0,0,16)
-  dprime <- (tr[2,] - nr[2,])/p[2,7]
+  dprime <- (tr[2,] - nr[2,])/(p[2,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[11,] <- 100*pnorm(dprime/sqrt(2))
   
   tr <- getmodelresp3inputs(p,0,0,0,0,contrastsC,16)
   nr <- getmodelresp3inputs(p,0,0,0,0,0,16)
-  dprime <- (tr[3,] - nr[3,])/p[3,7]
+  dprime <- (tr[3,] - nr[3,])/(p[3,7]/(qnorm(0.75)*sqrt(2)))
   pmfout[12,] <- 100*pnorm(dprime/sqrt(2)) 
   
   return(pmfout)}
@@ -2405,33 +2408,23 @@ Psychometric functions from each experiment were fit using *psignifit* 4 to esti
 
 The two-stage model of @Meese2006 was fit to the threshold data from Experiments 1 and 3 using a simplex algorithm to minimise the error between the model and data. We normalized the thresholds and pedestal contrasts to the appropriate monocular threshold for each stimulus type. The model is defined by a series of equations:
 
-\begin{equation}
-Stage1_L = \frac{C_L^m}{S + C_L + \omega C_R},
-\end{equation}
+$$\mathrm{Stage1}_L = \frac{C_L^m}{S + C_L + \omega C_R},$${#eq-s1l}
 
-\begin{equation}
-Stage1_R = \frac{C_R^m}{S + C_R + \omega C_L},
-\end{equation}
+$$\mathrm{Stage1}_R = \frac{C_R^m}{S + C_R + \omega C_L},$${#eq-s1r}
 
-\begin{equation}
-binsum = Stage1_L + Stage1_R,
-\end{equation}
+$$\mathrm{binsum} = \mathrm{Stage1}_L + \mathrm{Stage1}_R,$${#eq-binsum}
 
-\begin{equation}
-Stage2 = \frac{binsum^p}{Z + binsum^q},
-\end{equation}
+$$\mathrm{Stage2} = \frac{\mathrm{binsum}^p}{Z + \mathrm{binsum}^q},$${#eq-s2}
 
-where $C_L$ and $C_R$ are the (normalized) contrasts displayed to the left and right eyes, and $m$, $S$, $\omega$, $p$, $q$ and $Z$ are free parameters in the model. A further free parameter, $k$, represents additive internal noise, and is used to convert the model outputs to either d-prime or threshold values (note that in the original model specification [@Meese2006] this parameter was called $\sigma$, but we use the $k$ symbol here to avoid confusion with the standard deviation of the cumulative Gaussian used when fitting the psychometric functions to estimate thresholds). Thresholds are defined by iteratively adjusting the target contrast until the following equality is satisfied:
+where $C_L$ and $C_R$ are the (normalized) contrasts displayed to the left and right eyes, and $m$, $S$, $\omega$, $p$, $q$ and $Z$ are free parameters in the model. A further free parameter, $k$, is used to convert the model outputs to either d-prime or threshold values (note that in the original model specification [@Meese2006] this parameter was called $\sigma$, but we use the $k$ symbol here to avoid confusion with the standard deviation of the cumulative Gaussian used when fitting the psychometric functions to estimate thresholds). Thresholds are defined by iteratively adjusting the target contrast until the following equality is satisfied:
 
-\begin{equation}
-Stage2_{target+pedestal} - Stage2_{pedestal} = k,
-\end{equation}
+$$\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}} = k,$${#eq-thd}
 
-and d-prime for a single target level is defined as:
+and $d'$ (d-prime) for a single target level is defined as:
 
-\begin{equation}
-d' = \frac{Stage2_{target+pedestal} - Stage2_{pedestal}}{k}.
-\end{equation}
+$$d' = \frac{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}}}{k/\tau},$${#eq-dprime}
+
+where the parameter $\tau$ reflects the value of $d'$ at detection threshold. Defining threshold as the 75% correct point on the psychometric function (as here) yields a value of $\tau = \Phi^{-1}(0.75)\sqrt{2}$ = `r round(qnorm(0.75)*sqrt(2),digits=3)` (where $\Phi^{-1}$ is the inverse cumulative normal density function). The combined denominator term ($k/\tau$) therefore represents internal additive noise in the model.
 
 We ran the simplex algorithm from `r ntotalsimplexfits` random starting vectors for each data set, and chose the solution for each data set that gave the smallest root mean squared error (RMSE) between the model and data.
 
@@ -2439,9 +2432,7 @@ We also implemented a Bayesian hierarchical version of the model using the Stan 
 
 Finally, we adapted the two stage model to include parallel pathways to process achromatic, red/green and blue/yellow stimuli, that mutually suppress each other. We added additional suppressive terms at the first (monocular) stage of the model, for example:
 
-\begin{equation}
-ACStage1_L = \frac{AC_L^m}{S + AC_L + \omega_A AC_R + \omega_R RG_R + \omega_B BY_R},
-\end{equation}
+$$^{AC}\mathrm{Stage1}_L = \frac{AC_L^m}{S + AC_L + \omega_A AC_R + \omega_R RG_R + \omega_B BY_R},$${#eq-s1multi}
 
 where *AC* represents the achromatic contrast, *RG* represents the red/green contrast, *BY* represents the blue/yellow contrast, and $\omega_A$, $\omega_R$ and $\omega_B$ are the accompanying weights of interocular suppression. There is an equivalent expression for the right eye, and for each of the two isoluminant chromatic pathways. To simplify the model, and avoid free parameters that are poorly constrained by the data, we fixed several parameters (*p*, *q*, *m*, *S*, *k*, and $\omega$ for the within-pathway suppression) at the values from the fits from Experiment 1 (@tbl-parametertable, lower rows). This left 9 free parameters: a $Z$ parameter for each mechanism, and six cross-mechanism weights of interocular suppression. These parameters were again estimated within a Bayesian hierarchical framework, using the trial-wise data from Experiment 2. Note that the model as specified does not currently include monocular suppression between different pathways, as we did not collect any data for these conditions. Previous work [@Chen2000] has measured such interactions, and they could in principle be incorporated into the denominator of either stage 1 or stage 2 in the model.
 
@@ -2559,7 +2550,7 @@ row_spec(c(1,6),hline_after=T) %>% row_spec(0,italic=T) %>% row_spec(c(0,2,7),bo
 
 ```
 
-For consistency with previous work, we initially performed least-squares fits of the two-stage model [@Meese2006] for each of the chromaticity experiments, and the flickering disc experiment (7 free parameters per fit). The best model fits are shown by the curves in @fig-dipperfig and @fig-discdata, and provide an excellent description of the data, with RMS errors between `r round(min(allrms),digits=2)` and `r round(max(allrms),digits=2)`dB. Best fitting parameters are shown in the 'Simplex fits' section of @tbl-parametertable. We note that in previous work, the weight of interocular suppression ($\omega$ in the model) was implicitly fixed at 1. Here we allowed it to vary, but it still received a value very close to 1 in all of our grating conditions, and slightly below 1 (`r round(allp[4,6],digits=2)`) for our flickering discs. The exponent values (*p* and *q*) for the blue/yellow gratings are rather different from those of the other conditions. In previous work [@Meese2006] the second stage gain control nonlinearity (Equation 4) does typically have quite substantial exponent values, which balance the relatively mild nonlinearity at the first stage, and produce a compressive transducer that results in contrast masking (the handle of the dipper). The high value of *p* = `r round(allp[3,1], digits=2)` is therefore likely to be compensating for the low value of *m* = `r round(allp[3,3], digits=2)` at stage one, but may well represent the combination of several successive stages of nonlinearity, and perhaps also other phenomena such as uncertainty [@Pelli1985].
+For consistency with previous work, we initially performed least-squares fits of the two-stage model [@Meese2006] for each of the chromaticity experiments, and the flickering disc experiment (7 free parameters per fit). The best model fits are shown by the curves in @fig-dipperfig and @fig-discdata, and provide an excellent description of the data, with RMS errors between `r round(min(allrms),digits=2)` and `r round(max(allrms),digits=2)`dB. Best fitting parameters are shown in the 'Simplex fits' section of @tbl-parametertable. We note that in previous work, the weight of interocular suppression ($\omega$ in the model) was implicitly fixed at 1. Here we allowed it to vary, but it still received a value very close to 1 in all of our grating conditions, and slightly below 1 (`r round(allp[4,6],digits=2)`) for our flickering discs. The exponent values (*p* and *q*) for the blue/yellow gratings are rather different from those of the other conditions. In previous work [@Meese2006] the second stage gain control nonlinearity (@eq-s2) does typically have quite substantial exponent values, which balance the relatively mild nonlinearity at the first stage, and produce a compressive transducer that results in contrast masking (the handle of the dipper). The high value of *p* = `r round(allp[3,1], digits=2)` is therefore likely to be compensating for the low value of *m* = `r round(allp[3,3], digits=2)` at stage one, but may well represent the combination of several successive stages of nonlinearity, and perhaps also other phenomena such as uncertainty [@Pelli1985].
 
 We additionally implemented a hierarchical Bayesian version of the model to estimate full posterior parameter distributions. This model was fit simultaneously to the full trial-by-trial data from all participants who participated in a given experiment (i.e. the model was fitted separately to each of the four dipper data sets). [@fig-bayesianmodel]a-d summarises the model behaviour, which displays the same pattern of dipper functions as we found empirically. Modal posterior parameter values (maximum a posteriori (MAP) estimates) are given in the lower rows of @tbl-parametertable. These correspond quite closely to the parameters from the simplex fitting and the original @Meese2006 parameters (reproduced in the first row of the table for reference). The panels in the right and upper margins of [@fig-bayesianmodel] show posterior distributions for each model parameter. Note in particular that the posterior distribution for the weight of interocular suppression ($\omega$, top right panel) overlaps 1 for each experiment, consistent with the strong dichoptic masking observed in the threshold data. We note that the distribution for $\omega$ in the flickering disc condition is somewhat lower than for the other three data sets. However this difference is not meaningful according to widely accepted criteria such as comparing the 95% intervals of the distribution to a value of $\omega=1$.
 
@@ -2583,11 +2574,11 @@ We now discuss the relationship to previous work, and consider the likely physio
 
 ## Summation at threshold
 
-Estimates of the binocular summation ratio at threshold fell within the range $\sqrt{2}$ to 2 for all four stimuli tested here. Consistent with previous reports [@Simmons2005], summation was slightly higher for chromatic versus achromatic stimuli, but fell short of perfect linear summation (a ratio of 2). In our model, summation at threshold is determined by the exponent at the first gain control stage (the *m* parameter in Equations 1 & 2). The summation ratio can be approximated by $2^{1/m}$ [see Figure 9 of @Baker2012], such that an exponent of $m=1$ produces a ratio of 2, and an exponent of $m = 2$ produces a ratio of $\sqrt{2}$. Both the simplex and Bayesian model fits (see @tbl-parametertable) generated parameter estimates in the range $1 < m < 1.4$, consistent with the high levels of summation observed empirically.
+Estimates of the binocular summation ratio at threshold fell within the range $\sqrt{2}$ to 2 for all four stimuli tested here. Consistent with previous reports [@Simmons2005], summation was slightly higher for chromatic versus achromatic stimuli, but fell short of perfect linear summation (a ratio of 2). In our model, summation at threshold is determined by the exponent at the first gain control stage (the *m* parameter in @eq-s1l and @eq-s1r). The summation ratio can be approximated by $2^{1/m}$ [see Figure 9 of @Baker2012], such that an exponent of $m=1$ produces a ratio of 2, and an exponent of $m = 2$ produces a ratio of $\sqrt{2}$. Both the simplex and Bayesian model fits (see @tbl-parametertable) generated parameter estimates in the range $1 < m < 1.4$, consistent with the high levels of summation observed empirically.
 
 ## Interocular suppression
 
-The weight of interocular suppression is represented by the model parameter, $\omega$ (Equations 1 & 2). Posterior distributions of this parameter overlapped 1 for all of our dipper function data sets (see top right panel in [@fig-bayesianmodel]), indicating strong interocular suppression regardless of post-retinal pathway. The flickering disc stimuli produced a slightly lower suppression estimate, with $\omega \sim 0.9$. This may indicate slightly weaker suppression between the eyes for temporal modulations, but it is much less extreme than our recent estimates using EEG and matching paradigms [@Segala2023]. One difference between these studies is the luminance of the background, which was set to black for the experiments of @Segala2023, but here was set at the mean luminance. Other studies using static luminance increments have also reported differences in the character of binocular combination that are attributable to background luminance [@Baker2012], so this may explain the differences between studies. We also note that the weaker interocular suppression for flickering disc stimuli appears to be largely due to one participant (see [@fig-individualdiscs]c), so individual differences might also play a role. Future work should manipulate the background luminance systematically to better understand how this modulates interocular suppression.
+The weight of interocular suppression is represented by the model parameter, $\omega$ (@eq-s1l and @eq-s1r). Posterior distributions of this parameter overlapped 1 for all of our dipper function data sets (see top right panel in [@fig-bayesianmodel]), indicating strong interocular suppression regardless of post-retinal pathway. The flickering disc stimuli produced a slightly lower suppression estimate, with $\omega \sim 0.9$. This may indicate slightly weaker suppression between the eyes for temporal modulations, but it is much less extreme than our recent estimates using EEG and matching paradigms [@Segala2023]. One difference between these studies is the luminance of the background, which was set to black for the experiments of @Segala2023, but here was set at the mean luminance. Other studies using static luminance increments have also reported differences in the character of binocular combination that are attributable to background luminance [@Baker2012], so this may explain the differences between studies. We also note that the weaker interocular suppression for flickering disc stimuli appears to be largely due to one participant (see [@fig-individualdiscs]c), so individual differences might also play a role. Future work should manipulate the background luminance systematically to better understand how this modulates interocular suppression.
 
 ## Psychometric slopes
 
@@ -2595,7 +2586,7 @@ Previous work has demonstrated that the slope of the psychometric function in 2A
 
 ## Physiological substrates
 
-Recent evidence indicates that the physiological substrate of interocular suppression may be neurons in layer 4 of primary visual cortex [@Dougherty2019]. Most cells in this layer are monocularly excitable, in that their responses increase only by stimulation of their preferred eye. However, simultaneous stimulation of the non-preferred eye can modulate the response, usually in an inhibitory fashion, exactly as proposed at stage 1 of the two-stage model (Equations 1 & 2). In terms of perception, one consequence of this early suppression is to achieve 'ocularity invariance', whereby the perceived contrast of a stimulus viewed by one eye is equivalent to that of the same stimulus viewed by both eyes [@Baker2007]. Similar processes of response invariance have also been reported using fMRI [@Moradi2009] and steady-state EEG [@Baker2017].
+Recent evidence indicates that the physiological substrate of interocular suppression may be neurons in layer 4 of primary visual cortex [@Dougherty2019]. Most cells in this layer are monocularly excitable, in that their responses increase only by stimulation of their preferred eye. However, simultaneous stimulation of the non-preferred eye can modulate the response, usually in an inhibitory fashion, exactly as proposed at stage 1 of the two-stage model (@eq-s1l and @eq-s1r). In terms of perception, one consequence of this early suppression is to achieve 'ocularity invariance', whereby the perceived contrast of a stimulus viewed by one eye is equivalent to that of the same stimulus viewed by both eyes [@Baker2007]. Similar processes of response invariance have also been reported using fMRI [@Moradi2009] and steady-state EEG [@Baker2017].
 
 In V1, chromatic stimuli are processed in 'blob' regions that are largely monocular as they fall within ocular dominance columns [@Livingstone1984]. Since our psychophysical results indicate that interocular suppression is equally strong within chromatic and achromatic pathways, it may be that blob regions include interocular suppression. Presumably binocular summation of signals occurs at a later stage of processing for chromatic stimuli, but this does not lead to different perceptual outcomes. This physiological arrangement might also be responsible for the pattern of between-pathway interocular suppression (see [@fig-MCSfig]g). If blobs process signals from both the L-M and S-(L+M) pathways, their close physical proximity might explain the stronger suppression between the two chromatic pathways than between the chromatic and (more distant) achromatic pathways.
 
