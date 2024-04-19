@@ -209,15 +209,15 @@ results across stimuli, implying equivalently strong interocular
 suppression within each pathway. Our second experiment measured
 dichoptic masking within and between pathways using the method of
 constant stimuli. Masking was strongest within-pathway, and weakest
-between chromatic and achromatic mechanisms. Finally, we repeated the
+between blue/yellow and achromatic mechanisms. Finally, we repeated the
 dipper experiment using temporal luminance modulations, which produced
 slightly weaker interocular suppression than for spatially modulated
 stimuli. We interpret our results in the context of a contemporary
 two-stage model of binocular contrast gain control, implemented here
 using a hierarchical Bayesian framework. Posterior distributions of the
 weight of interocular suppression overlapped with a value of 1 for all
-dipper data sets, and the model captured well the pattern of threshold
-and slope values from all three experiments.
+dipper data sets, and the model captured well the pattern of thresholds
+from all three experiments.
 
 \textbf{Keywords}: \emph{isoluminant}, \emph{dichoptic}, \emph{binocular
 interactions}, \emph{gain control}, \emph{summation},
@@ -292,9 +292,9 @@ pedestal ocularity is appropriately controlled. Finally, the dichoptic
 condition produces extremely strong masking of the target, such that
 when the pedestal is visible, the target must equal or exceed its
 contrast to be detectable (Baker \& Meese, 2007; Legge, 1979; Maehara \&
-Goryo, 2005). The characteristic pattern of dipper functions is
-well-described by the gain control model of Meese et al. (2006) for
-achromatic stimuli.
+Goryo, 2005). The characteristic pattern of dipper functions (right
+panel of Figure~\ref{fig-exampledips}) is well-described by the gain
+control model of Meese et al. (2006) for achromatic stimuli.
 
 At the output of the human retina, cone responses are split into three
 distinct pathways. The sum of long- and medium-wavelength cone outputs
@@ -326,7 +326,7 @@ distinct from those of the achromatic system. In primary visual cortex
 revealed by cytochrome oxidase staining (Horton \& Hubel, 1981). The
 blob regions appear to be largely monocular (Livingstone \& Hubel,
 1984), suggesting that binocular combination for chromatic stimuli might
-occur later than for achromatic stimuli, and perhaps be subject to
+occur separately than for achromatic stimuli, and perhaps be subject to
 different constraints.
 
 A further property of `blob' regions is that they are less strongly
@@ -341,7 +341,7 @@ psychophysical contrast matching data were both consistent with weak
 interocular suppression when using this stimulus arrangement. This is
 very different from the `ocularity invariance' (where binocular and
 monocular stimuli appear equal) that is well-established when using
-DC-balanced periodic stimuli such as sine-wave gratings, and implies
+spatially modulated stimuli such as sine-wave gratings, and implies
 strong interocular suppression (Baker \& Wade, 2017; Meese et al., 2006;
 Moradi \& Heeger, 2009). There is additional psychophysical evidence
 from matching studies that binocular combination can be close to linear
@@ -434,9 +434,11 @@ by fitting a four-parameter gamma function to the output of each CRT
 gun. The maximum luminance was 87 cd/m\(^2\). We also measured the
 spectral output of each phosphor using a Jaz spectroradiometer (Ocean
 Insight, Florida), and used these measurements to convert between LMS
-(cone) space and the monitor RGB coordinates. We express contrast values
-in normalized units, relative to the monocular threshold for each
-stimulus type.
+(cone) space and the monitor RGB coordinates. We express threshold and
+pedestal contrasts in normalized units, relative to the monocular
+detection threshold for each stimulus type. A threshold value of 2
+therefore means that, relative to monocular detection, twice as much
+contrast was required to reach the same level of performance.
 
 \hypertarget{procedure}{%
 \subsection{Procedure}\label{procedure}}
@@ -455,7 +457,7 @@ Participants used a trackball to dynamically adjust the colour angle of
 the stimulus to minimise the percept of flicker. Each participant
 completed ten such trials for each colour plane, and the average angle
 across repetition was taken as the isoluminant point, and used to
-generate stimuli for the main experiment for that participant. Settings
+generate stimuli in the main experiment for that participant. Settings
 were very similar across participants for the S-(L+M) direction, and
 somewhat more heterogeneous for the L-M direction (see
 Figure~\ref{fig-isofig}).
@@ -482,15 +484,18 @@ an auditory beep, and participants made their responses using a
 two-button trackball. Correct responses were followed by a high-pitched
 tone, and incorrect responses by a low-pitched tone. Each block of the
 experiment tested a single pedestal contrast level and lasted around 12
-minutes. On each trial the target contrast level was determined by a
-3-down-1-up staircase procedure. There were 8 interleaved staircases in
-total; four stimulus arrangements (see Figure~\ref{fig-exampledips})
-combined factorially with two target eye assignments. Each pedestal
-contrast was repeated 3 times by each participant, and the block order
-was randomised. The experiment lasted around 4 hours per participant for
-each chromatic condition, and took place over the course of several
-weeks. In total, the experiment consisted of 67978 trials (pooled across
-participants).
+minutes. The pedestal contrasts were 0, 0.5, 1, 2, 4, 8, 16 and 32\%
+Michelson contrast for the achromatic stimulus, and 0, 1, 2, 4, 8, 16,
+32 and 64\% of the maximum available contrast for each chromatic
+stimulus. On each trial the target contrast level was determined by a
+3-down-1-up staircase procedure, moving in logarithmic (3dB) steps.
+There were 8 interleaved staircases in total; four stimulus arrangements
+(see Figure~\ref{fig-exampledips}) combined factorially with two target
+eye assignments. Each pedestal contrast was repeated 3 times by each
+participant, and the block order was randomised. The experiment lasted
+around 4 hours per participant for each chromatic condition, and took
+place over the course of several weeks. In total, the experiment
+consisted of 67978 trials (pooled across participants).
 
 In Experiment 2, participants completed a 2IFC dichoptic masking task.
 The stimuli and trial protocol were the same as for Experiment 1, except
@@ -550,23 +555,27 @@ The model is defined by a series of equations:
 where \(C_L\) and \(C_R\) are the (normalized) contrasts displayed to
 the left and right eyes, and \(m\), \(S\), \(\omega\), \(p\), \(q\) and
 \(Z\) are free parameters in the model. A further free parameter, \(k\),
-represents additive internal noise, and is used to convert the model
-outputs to either d-prime or threshold values (note that in the original
-model specification (Meese et al., 2006) this parameter was called
-\(\sigma\), but we use the \(k\) symbol here to avoid confusion with the
-standard deviation of the cumulative Gaussian used when fitting the
-psychometric functions to estimate thresholds). Thresholds are defined
-by iteratively adjusting the target contrast until the following
-equality is satisfied:
+is used to convert the model outputs to either d-prime or threshold
+values (note that in the original model specification (Meese et al.,
+2006) this parameter was called \(\sigma\), but we use the \(k\) symbol
+here to avoid confusion with the standard deviation of the cumulative
+Gaussian used when fitting the psychometric functions to estimate
+thresholds). Thresholds are defined by iteratively adjusting the target
+contrast until the following equality is satisfied:
 
 \begin{equation}\protect\hypertarget{eq-thd}{}{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}} = k,}\label{eq-thd}\end{equation}
 
 and \(d'\) (d-prime) for a single target level is defined as:
 
-\begin{equation}\protect\hypertarget{eq-dprime}{}{d' = \frac{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}}}{k/0.954},}\label{eq-dprime}\end{equation}
+\begin{equation}\protect\hypertarget{eq-dprime}{}{d' = \frac{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}}}{k/\tau},}\label{eq-dprime}\end{equation}
 
-where the constant 0.954 reflects the value of \(d'\) at the 75\%
-correct point on the psychometric function used to estimate threshold.
+where the parameter \(\tau\) reflects the value of \(d'\) at detection
+threshold. Defining threshold as the 75\% correct point on the
+psychometric function (as here) yields a value of
+\(\tau = \Phi^{-1}(0.75)\sqrt{2}\) = 0.954 (where \(\Phi^{-1}\) is the
+inverse cumulative normal density function). The combined denominator
+term (\(k/\tau\)) therefore represents internal additive noise in the
+model.
 
 We ran the simplex algorithm from 100 random starting vectors for each
 data set, and chose the solution for each data set that gave the
@@ -607,12 +616,12 @@ within-pathway suppression) at the values from the fits from Experiment
 parameters: a \(Z\) parameter for each mechanism, and six
 cross-mechanism weights of interocular suppression. These parameters
 were again estimated within a Bayesian hierarchical framework, using the
-trial-wise data from Experiment 2. Note that the model as specified does
-not currently include monocular suppression between different pathways,
-as we did not collect any data for these conditions. Previous work (Chen
-et al., 2000) has measured such interactions, and they could in
-principle be incorporated into the denominator of either stage 1 or
-stage 2 in the model.
+binomial proportion correct data from Experiment 2. Note that the model
+as specified does not currently include monocular suppression between
+different pathways, as we did not collect any data for these conditions.
+Previous work (Chen et al., 2000) has measured such interactions, and
+they could in principle be incorporated into the denominator of either
+stage 1 or stage 2 in the model.
 
 \hypertarget{open-science-practices}{%
 \subsection{Open science practices}\label{open-science-practices}}
@@ -687,22 +696,23 @@ Figure~\ref{fig-individualdippers}.
 
 Following Meese et al. (2006), we also inspected the slope of the
 psychometric function for each condition (see
-Figure~\ref{fig-dipperfig}d-f). At detection threshold, slopes were
-relatively steep for all stimuli, with values around \(\beta=4\). As
-pedestal contrasts increased, slopes linearized and reduced to around
-\(\beta=1.3\) (Foley \& Legge, 1981; Meese et al., 2006), and remained
-shallow at high pedestal contrasts. The exception to this was the
-dichoptic condition, where slopes became extremely steep at high
-dichoptic mask contrasts, consistent with previous observations (Baker
-et al., 2013; Meese et al., 2006). This was clear for all three data
-sets, with slope values in the range \(4 < \beta < 8\). However, we
-observe that slope estimates are more variable than threshold estimates
-(note the large error bars), particularly when using adaptive
-staircases, which deploy most trials close to threshold. Our second
-experiment therefore investigated the slope of the psychometric function
-in more detail for dichoptic masking using the method of constant
-stimuli, as well as exploring dichoptic interactions between chromatic
-channels.
+Figure~\ref{fig-dipperfig}d-f), as this provides information about the
+effective gradient of the underlying contrast response function. At
+detection threshold, slopes were relatively steep for all stimuli, with
+values around \(\beta=4\). As pedestal contrasts increased, slopes
+linearized and reduced to around \(\beta=1.3\) (Foley \& Legge, 1981;
+Meese et al., 2006), and remained shallow at high pedestal contrasts.
+The exception to this was the dichoptic condition, where slopes became
+extremely steep at high dichoptic mask contrasts, consistent with
+previous observations (Baker et al., 2013; Meese et al., 2006). This was
+clear for all three data sets, with slope values in the range
+\(4 < \beta < 8\). However, we observe that slope estimates are more
+variable than threshold estimates (note the large error bars),
+particularly when using adaptive staircases, which deploy most trials
+close to threshold. Our second experiment therefore investigated the
+slope of the psychometric function in more detail for dichoptic masking
+using the method of constant stimuli, as well as exploring dichoptic
+interactions between chromatic channels.
 
 \hypertarget{experiment-2}{%
 \subsection{Experiment 2}\label{experiment-2}}
@@ -735,9 +745,9 @@ threshold and slope estimates for individual participants (points) and
 the boundary of the posterior density estimates for fits to the pooled
 data (ellipses). Panel (g) shows the average threshold elevation factor
 for each combination of target and mask stimulus. Panel (h) shows the
-geometric mean psychometric slope value for each masking condition in
-Weibull \(\beta\) units. Contrast values are expressed relative to the
-target only threshold for each stimulus type.}
+geometric mean psychometric slope value for each masking condition,
+expressed in Weibull \(\beta\) units. Contrast values are normalized to
+the target only threshold for each stimulus type.}
 
 \end{figure}
 
@@ -868,10 +878,10 @@ to each of the four dipper data sets). Figure~\ref{fig-bayesianmodel}a-d
 summarises the model behaviour, which displays the same pattern of
 dipper functions as we found empirically. Modal posterior parameter
 values (maximum a posteriori (MAP) estimates) are given in the lower
-rows of Table~\ref{tbl-parametertable}. These correspond quite closely
-to the parameters from the simplex fitting and the original Meese et al.
+rows of Table~\ref{tbl-parametertable}. These are in a similar range to
+the parameters from the simplex fitting and the original Meese et al.
 (2006) parameters (reproduced in the first row of the table for
-reference). The panels in the right and upper margins of
+reference). The panels along the right and upper margins of
 Figure~\ref{fig-bayesianmodel} show posterior distributions for each
 model parameter. Note in particular that the posterior distribution for
 the weight of interocular suppression (\(\omega\), top right panel)
@@ -901,7 +911,8 @@ for all posterior plots.}
 \end{figure}
 
 Finally we fitted an extended model, that included interocular
-suppression between the different pathways, to the data of Experiment 2.
+suppression between the different pathways (see
+Equation~\ref{eq-s1multi}), to the data of Experiment 2.
 Figure~\ref{fig-MCSmodel} shows the model curves (panels a-c), which
 correspond closely to the data in Figure~\ref{fig-MCSfig}. One striking
 discrepancy is that the model predicts a region of negative d-prime for
@@ -922,13 +933,16 @@ interocular suppression in each combination of target and mask
 chromaticity. The weakest suppression was between achromatic targets and
 masks and blue/yellow targets and masks, and the strongest suppression
 was between red/green targets and blue/yellow masks. Note that the
-weight parameter value of 1.21 for this condition is higher than that of
-the within-channel weights (values around 1), even though the
-within-channel conditions generate more threshold elevation. In the
-model, high thresholds for within-channel dichoptic masks occur because
-the target and mask are summed together, which causes additional masking
-(see Baker et al., 2013). There do not appear to be any other salient
-patterns in the suppressive weight estimates.
+weight parameter value of \(\omega\) = 1.11 for this condition is
+slightly higher than that of the within-channel weights (values around
+1), even though the within-channel conditions generate more threshold
+elevation. In the model, high thresholds for within-channel dichoptic
+masks occur because the target and mask are summed together, which
+causes additional masking (see Baker et al., 2013). However it is clear
+that the posterior distribution of the weight parameter is quite broad
+and overlaps 1, so this difference may not be meaningful. There do not
+appear to be any other salient patterns in the suppressive weight
+estimates.
 
 \begin{figure}
 
@@ -939,7 +953,7 @@ patterns in the suppressive weight estimates.
 \caption{\label{fig-MCSmodel}Summary of the model fit to the data of
 Experiment 2. Panels (a-c) show model psychometric functions in the same
 format as those in Figure 5. Panel (d) shows the fitted suppressive
-weights (\(\omega\) values) estiamted by the model, and panel (e) shows
+weights (\(\omega\) values) estimated by the model, and panel (e) shows
 the posterior distributions for each weight parameter. The lower right
 plot gives the legends for the upper row (top) and the posterior
 distributions in panel (e).}
@@ -958,7 +972,7 @@ Across three psychophysical experiments, we have demonstrated that:
   that for achromatic stimuli
 \item
   Interocular suppression is strongest within a post-retinal pathway,
-  and weakest between achromatic and chromatic pathways
+  and weakest between the achromatic and blue/yellow pathways
 \item
   Binocular combination occurs similarly for spatial and temporal
   luminance modulations
@@ -995,19 +1009,19 @@ dipper function data sets (see top right panel in
 Figure~\ref{fig-bayesianmodel}), indicating strong interocular
 suppression regardless of post-retinal pathway. The flickering disc
 stimuli produced a slightly lower suppression estimate, with
-\(\omega \sim 0.9\). This may indicate slightly weaker suppression
-between the eyes for temporal modulations, but it is much less extreme
-than our recent estimates using EEG and matching paradigms (Segala et
-al., 2023). One difference between these studies is the luminance of the
-background, which was set to black for the experiments of Segala et al.
-(2023), but here was set at the mean luminance. Other studies using
-static luminance increments have also reported differences in the
-character of binocular combination that are attributable to background
-luminance (Baker et al., 2012), so this may explain the differences
-between studies. We also note that the weaker interocular suppression
-for flickering disc stimuli appears to be largely due to one participant
-(see Figure~\ref{fig-individualdiscs}c), so individual differences might
-also play a role. Future work should manipulate the background luminance
+\(\omega < 0.9\). This may indicate slightly weaker suppression between
+the eyes for temporal modulations, but it is much less extreme than our
+recent estimates using EEG and matching paradigms (Segala et al., 2023).
+One difference between these studies is the luminance of the background,
+which was set to black for the experiments of Segala et al. (2023), but
+here was set at the mean luminance. Other studies using static luminance
+increments have also reported differences in the character of binocular
+combination that are attributable to background luminance (Baker et al.,
+2012), so this may explain the differences between studies. We also note
+that the weaker interocular suppression for flickering disc stimuli
+appears to be largely due to one participant (see
+Figure~\ref{fig-individualdiscs}c), so individual differences might also
+play a role. Future work should manipulate the background luminance
 systematically to better understand how this modulates interocular
 suppression.
 
@@ -1048,20 +1062,20 @@ both eyes (Baker et al., 2007). Similar processes of response invariance
 have also been reported using fMRI (Moradi \& Heeger, 2009) and
 steady-state EEG (Baker \& Wade, 2017).
 
-In V1, chromatic stimuli are processed in `blob' regions that are
-largely monocular as they fall within ocular dominance columns
-(Livingstone \& Hubel, 1984). Since our psychophysical results indicate
-that interocular suppression is equally strong within chromatic and
-achromatic pathways, it may be that blob regions include interocular
-suppression. Presumably binocular summation of signals occurs at a later
-stage of processing for chromatic stimuli, but this does not lead to
-different perceptual outcomes. This physiological arrangement might also
-be responsible for the pattern of between-pathway interocular
-suppression (see Figure~\ref{fig-MCSfig}g). If blobs process signals
-from both the L-M and S-(L+M) pathways, their close physical proximity
-might explain the stronger suppression between the two chromatic
-pathways than between the chromatic and (more distant) achromatic
-pathways.
+In V1, the classical view is that chromatic stimuli are processed in
+`blob' regions that are largely monocular as they fall within ocular
+dominance columns (Livingstone \& Hubel, 1984). However more recent work
+has shown chromatic processing outside of the blobs (Sincich \& Horton,
+2005), especially for stimuli with spatial structure (Chatterjee et al.,
+2021). Since our psychophysical results indicate that interocular
+suppression is equally strong within chromatic and achromatic pathways,
+it may be that psychophysical performance indexes a common population of
+(non-blob) neurons for all of our stimuli. On the other hand, if blob
+regions include a subset of monocular neurons subject to interocular
+suppression (e.g. Dougherty et al., 2019), this might be followed by
+binocular summation at a later stage of processing for chromatic
+stimuli, and potentially also for very low spatial frequency luminance
+modulations also processed in blobs (Economides et al., 2011).
 
 \hypertarget{conclusions}{%
 \section{Conclusions}\label{conclusions}}
@@ -1069,7 +1083,7 @@ pathways.
 Here we provide estimates of interocular suppression within and between
 the three primary post-retinal visual pathways. These results show that
 binocular signal combination is similar within each pathway, but that
-interocular suppression is relatively weak between pathways. Our
+interocular suppression is typically weaker between pathways. Our
 findings could be applied when building models to predict perception of
 binocular images and movies, for example those generated by virtual and
 augmented reality systems, or in 3D cinema and television.
@@ -1141,6 +1155,11 @@ Betancourt, M., Brubaker, M., Guo, J., Li, P., \& Riddell, A. (2017).
 Stan: A probabilistic programming language. \emph{Journal of Statistical
 Software}, \emph{76}(1), 1--32.
 \url{https://doi.org/10.18637/jss.v076.i01}
+
+\leavevmode\vadjust pre{\hypertarget{ref-Chatterjee2021}{}}%
+Chatterjee, S., Ohki, K., \& Reid, R. C. (2021). Chromatic micromaps in
+primary visual cortex. \emph{Nat Commun}, \emph{12}(1), 2315.
+\url{https://doi.org/10.1038/s41467-021-22488-3}
 
 \leavevmode\vadjust pre{\hypertarget{ref-Chen2000}{}}%
 Chen, C., Foley, J. M., \& Brainard, D. H. (2000). Detection of
@@ -1287,6 +1306,12 @@ https://doi.org/\url{https://doi.org/10.1002/col.20602}
 Simmons, D. R. (2005). The binocular combination of chromatic contrast.
 \emph{Perception}, \emph{34}(8), 1035--1042.
 \url{https://doi.org/10.1068/p5279}
+
+\leavevmode\vadjust pre{\hypertarget{ref-Sincich2005}{}}%
+Sincich, L. C., \& Horton, J. C. (2005). The circuitry of V1 and V2:
+Integration of color, form, and motion. \emph{Annu Rev Neurosci},
+\emph{28}, 303--326.
+\url{https://doi.org/10.1146/annurev.neuro.28.061604.135731}
 
 \leavevmode\vadjust pre{\hypertarget{ref-Stockman2000}{}}%
 Stockman, A., \& Sharpe, L. T. (2000). The spectral sensitivities of the
