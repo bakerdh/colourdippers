@@ -30,7 +30,7 @@ $^*$Corresponding author, email: daniel.baker\@york.ac.uk
 
 ```{r setup, include=FALSE}
 
-processdata <- 1
+processdata <- 0
 # the processdata flag has three settings:
 # 0: do no analysis, just produce the pdf of the manuscript
 # 1: fit psychometric functions and plot graphs
@@ -2547,7 +2547,7 @@ tableparams[c(2,7),2:9] <- ' '
 #| echo: false
 #| tbl-cap: 'Summary of fitted model parameters. The top row gives the best fitting parameters from the study of Meese et al. (2006). The second section shows the best fitting parameters from simplex fits to the averaged thresholds for each experiment. The final rows show the posterior parameter estimates from the Bayesian model, fitted to each data set from Experiments 1 and 3.'
 
-knitr::kable(tableparams, align='lrrrrrrrr', booktabs = TRUE, linesep='',escape = FALSE) %>%
+kableExtra::kbl(tableparams, align='lrrrrrrrr', booktabs = TRUE, linesep='',escape = FALSE) %>%
 row_spec(c(1,6),hline_after=T) %>% row_spec(0,italic=T) %>% row_spec(c(0,2,7),bold=T)
 
 ```
