@@ -77,28 +77,38 @@
 \makeatletter
 \def\fps@figure{htbp}
 \makeatother
+% definitions for citeproc citations
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
 \newlength{\cslhangindent}
 \setlength{\cslhangindent}{1.5em}
 \newlength{\csllabelwidth}
 \setlength{\csllabelwidth}{3em}
-\newlength{\cslentryspacingunit} % times entry-spacing
-\setlength{\cslentryspacingunit}{\parskip}
-\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
- {% don't indent paragraphs
-  \setlength{\parindent}{0pt}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
   % turn on hanging indent if param 1 is 1
   \ifodd #1
-  \let\oldpar\par
-  \def\par{\hangindent=\cslhangindent\oldpar}
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
   \fi
   % set entry spacing
-  \setlength{\parskip}{#2\cslentryspacingunit}
- }%
- {}
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
 \usepackage{calc}
-\newcommand{\CSLBlock}[1]{#1\hfill\break}
-\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
-\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 
 \usepackage{booktabs}
@@ -116,11 +126,7 @@
 \usepackage{makecell}
 \usepackage{xcolor}
 \KOMAoption{captions}{tableheading}
-\usepackage{float} \floatplacement{figure}{H} \newcommand{\beginsupplement}{\setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
-\makeatletter
-\makeatother
-\makeatletter
-\makeatother
+\usepackage{lineno} \linenumbers \usepackage{float} \floatplacement{figure}{H} \newcommand{\beginsupplement}{\setcounter{table}{0}  \renewcommand{\thetable}{A\arabic{table}} \setcounter{figure}{0} \renewcommand{\thefigure}{A\arabic{figure}}}
 \makeatletter
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \AtBeginDocument{%
@@ -157,15 +163,16 @@
 \newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
 \makeatother
 \makeatletter
-\@ifpackageloaded{caption}{}{\usepackage{caption}}
-\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
 \makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\usepackage{bookmark}
+
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
@@ -187,6 +194,7 @@ Martin\(^{1,4}\) \and Maya Rockman\(^1\) \and Alex R. Wade\(^{1,2}\)}
 
 \begin{document}
 \maketitle
+
 \(^1\)Department of Psychology, University of York, UK\\
 \(^2\)York Biomedical Research Institute, University of York, UK\\
 \(^3\)School of Psychology, University of Nottingham, UK\\
@@ -194,8 +202,7 @@ Martin\(^{1,4}\) \and Maya Rockman\(^1\) \and Alex R. Wade\(^{1,2}\)}
 of Edinburgh, UK\\
 \(^*\)Corresponding author, email: daniel.baker@york.ac.uk
 
-\hypertarget{abstract}{%
-\section{Abstract}\label{abstract}}
+\section{Abstract}\label{abstract}
 
 Much progress has been made in understanding how the brain combines
 signals from the two eyes. However, most of this work has involved
@@ -203,42 +210,42 @@ achromatic (black and white) stimuli, and it is not clear if the same
 processes apply in colour-sensitive pathways. In our first experiment,
 we measured contrast discrimination (`dipper') functions for four key
 ocular configurations (monocular, binocular, half-binocular and
-dichoptic), for achromatic, isoluminant red/green and isoluminant
-blue/yellow sine-wave grating stimuli. We find a similar pattern of
-results across stimuli, implying equivalently strong interocular
-suppression within each pathway. Our second experiment measured
-dichoptic masking within and between pathways using the method of
-constant stimuli. Masking was strongest within-pathway, and weakest
-between blue/yellow and achromatic mechanisms. Finally, we repeated the
-dipper experiment using temporal luminance modulations, which produced
-slightly weaker interocular suppression than for spatially modulated
-stimuli. We interpret our results in the context of a contemporary
-two-stage model of binocular contrast gain control, implemented here
-using a hierarchical Bayesian framework. Posterior distributions of the
-weight of interocular suppression overlapped with a value of 1 for all
-dipper data sets, and the model captured well the pattern of thresholds
-from all three experiments.
+dichoptic), for achromatic, isoluminant L-M and isoluminant S-(L+M)
+sine-wave grating stimuli. We find a similar pattern of results across
+stimuli, implying equivalently strong interocular suppression within
+each pathway. Our second experiment measured dichoptic masking within
+and between pathways using the method of constant stimuli. Masking was
+strongest within-pathway, and weakest between S-(L+M) and achromatic
+mechanisms. Finally, we repeated the dipper experiment using temporal
+luminance modulations, which produced slightly weaker interocular
+suppression than for spatially modulated stimuli. We interpret our
+results in the context of a contemporary two-stage model of binocular
+contrast gain control, implemented here using a hierarchical Bayesian
+framework. Posterior distributions of the weight of interocular
+suppression overlapped with a value of 1 for all dipper data sets, and
+the model captured well the pattern of thresholds from all three
+experiments.
 
 \textbf{Keywords}: \emph{isoluminant}, \emph{dichoptic}, \emph{binocular
 interactions}, \emph{gain control}, \emph{summation},
 \emph{suppression}, \emph{masking}, \emph{psychophysics}
 
-\hypertarget{introduction}{%
-\section{Introduction}\label{introduction}}
+\section{Introduction}\label{introduction}
 
 The process by which the brain combines independent inputs is of
-fundamental importance for understanding sensory perception. Binocular
-vision is a useful test-case for determining the general principles
-involved in neural signal combination, as our brains typically combine
-the inputs from the left and right eyes to provide binocular single
-vision. In recent years our understanding has been facilitated by the
-development of binocular gain control models that provide a framework to
-interpret empirical data from multiple experimental paradigms and
-techniques, including psychophysics (Meese et al., 2006), EEG (Baker \&
-Wade, 2017), fMRI (Moradi \& Heeger, 2009) and pupillometry (Segala et
-al., 2023). However, most of this work has used achromatic (black and
-white) stimuli; we know comparatively little about how chromatic signals
-are combined binocularly, or about how signals in different ocular and
+fundamental importance for understanding sensory perception (Baker \&
+Wade, 2017; Ernst \& Banks, 2002). Binocular vision is a useful
+test-case for determining the general principles involved in neural
+signal combination, as our brains typically combine the inputs from the
+left and right eyes to provide binocular single vision (Read, 2021). In
+recent years our understanding has been facilitated by the development
+of binocular gain control models that provide a framework to interpret
+empirical data from multiple experimental paradigms and techniques,
+including psychophysics (Meese et al., 2006), EEG (Baker \& Wade, 2017),
+fMRI (Moradi \& Heeger, 2009) and pupillometry (Segala et al., 2023).
+However, most of this work has used achromatic (black and white)
+stimuli; we know comparatively little about how chromatic signals are
+combined binocularly, or about how signals in different ocular and
 chromatic channels interact. In this study we use psychophysical
 detection and discrimination paradigms to explore binocular interactions
 within and between the chromatic and achromatic pathways.
@@ -254,22 +261,26 @@ participants must discriminate between stimuli of two contrasts (a
 `pedestal', and a `pedestal plus target') that are both presented to one
 eye, whilst the other eye views mean luminance. Threshold is defined as
 the minimum target contrast required to make this judgement with 75\%
-accuracy. The binocular condition is the same, except that the stimuli
-are shown to both eyes. In the half-binocular condition the pedestal is
-shown to both eyes, but the target increment is shown only to one eye.
-Finally, the dichoptic condition involves presenting the pedestal to one
-eye, and the target increment to the other eye.
+accuracy; this reduces at pedestal contrasts around threshold
+(facilitation), and increases at high pedestal contrasts (masking). The
+binocular condition is the same, except that the stimuli are shown to
+both eyes. In the half-binocular condition the pedestal is shown to both
+eyes, but the target increment is shown only to one eye. Finally, the
+dichoptic condition involves presenting the pedestal to one eye, and the
+target increment to the other eye.
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/exampledips.pdf}
+\centering{
+
+\includegraphics{Figures/exampledips.pdf}
 
 }
 
 \caption{\label{fig-exampledips}Illustration of stimulus conditions
 (left) and example dipper functions (right).}
 
-\end{figure}
+\end{figure}%
 
 The detailed pattern of thresholds across these four conditions is
 complex, and for achromatic stimuli has several distinctive features
@@ -287,7 +298,7 @@ of eyes seeing the pedestal (Meese et al., 2006). The pedestal is always
 binocular in this condition, whereas the target increment is monocular,
 and thresholds are consistently higher than in the binocular condition
 across the full range of pedestal contrasts. This demonstrates that
-binocular summation occurs across the full contrast range, when the
+binocular summation occurs across the entire contrast range, when the
 pedestal ocularity is appropriately controlled. Finally, the dichoptic
 condition produces extremely strong masking of the target, such that
 when the pedestal is visible, the target must equal or exceed its
@@ -305,50 +316,57 @@ and medium-wavelength cone outputs (L-M) is responsive to chromatic
 stimuli modulating along a red/green axis in colour space. Finally the
 opponent (S-(L+M)) channel codes chromatic stimuli modulating along a
 blue/yellow axis. At isoluminance, where (L+M) is held constant, this
-channel is driven purely by the S-cone outputs.
+channel is driven purely by the S-cone outputs. Within each chromatic
+pathway, contrast discrimination functions are similar to those for
+achromatic vision, showing evidence of facilitation at low pedestal
+contrasts and masking at high pedestal contrasts (Chen et al., 2000;
+Switkes et al., 1988). There are also interactions between luminance and
+colour mechanisms, which are able to mask each other (Chen et al., 2000;
+Mullen \& Losada, 1994; Switkes et al., 1988), and under some
+circumstances also show cross-pathway facilitation (Cole et al., 1990;
+Mullen \& Losada, 1994; Shooner \& Mullen, 2020; Switkes et al., 1988).
 
 There has not yet been a detailed investigation of binocular contrast
-discrimination in either of these chromatic pathways, however there is
-reason to believe they may differ from the achromatic pathway. At
-detection threshold, binocular summation is greater for chromatic versus
+interactions in either chromatic pathway, however there are reasons to
+believe they may differ from the achromatic pathway. At detection
+threshold, binocular summation is greater for chromatic versus
 achromatic stimuli (Simmons, 2005), implying a more linear initial stage
 of processing. For cross-orientation masking, there are differences in
-the magnitude of masking between chromatic (red/green) and achromatic
-stimuli (Kim et al., 2013; Medina \& Mullen, 2009), as well as
-differences in their temporal dynamics (Kim \& Mullen, 2015). There are
-also interactions between chromatic and achromatic pathways both within
-(Chen et al., 2000) and between (Kingdom \& Libenson, 2015; Mullen et
-al., 2014) the eyes, yet these have not been fully explored for
-arrangements where the target and mask have the same orientation.
-Finally, the neurophysiological underpinnings of colour vision are
-distinct from those of the achromatic system. In primary visual cortex
-(V1), chromatic signals are processed in `blob' regions that are
-revealed by cytochrome oxidase staining (Horton \& Hubel, 1981). The
-blob regions appear to be largely monocular (Livingstone \& Hubel,
-1984), suggesting that binocular combination for chromatic stimuli might
-occur separately than for achromatic stimuli, and perhaps be subject to
-different constraints.
+the magnitude of masking between chromatic (L-M) and achromatic stimuli
+(Kim et al., 2013; Medina \& Mullen, 2009), as well as differences in
+their temporal dynamics (Kim \& Mullen, 2015). There are also binocular
+interactions between chromatic and achromatic pathways (Kingdom \&
+Libenson, 2015; Mullen et al., 2014), yet these have not been fully
+explored for arrangements where the target and mask have the same
+orientation. Finally, the neurophysiological underpinnings of colour
+vision may be distinct from those of the achromatic system. The
+classical view is that in primary visual cortex (V1), chromatic signals
+are processed in `blob' regions that are revealed by cytochrome oxidase
+staining (Horton \& Hubel, 1981), and are largely monocular (Livingstone
+\& Hubel, 1984). However subsequent work has revealed a more complex
+arrangement, making such a clear-cut phyisological distinction unlikely
+(for a review, see Shapley \& Hawken, 2011). Nevertheless, the
+physiological segregation between pathways at the output of the retina
+could still lead to differences in the way signals are combined across
+the eyes.
 
-A further property of `blob' regions is that they are less strongly
-orientation-tuned than other regions of V1 (Horton \& Hubel, 1981;
-Livingstone \& Hubel, 1984), and biased towards low spatial frequencies
-(Edwards et al., 1995; Tootell et al., 1988; though see Economides et
-al., 2011). Our recent work (Segala et al., 2023) has investigated
-binocular combination for flickering discs of luminance, which are
-DC-balanced across time (i.e.~the time-averaged luminance is equal to
-the background). Steady-state EEG responses from early visual cortex and
-psychophysical contrast matching data were both consistent with weak
-interocular suppression when using this stimulus arrangement. This is
-very different from the `ocularity invariance' (where binocular and
-monocular stimuli appear equal) that is well-established when using
-spatially modulated stimuli such as sine-wave gratings, and implies
-strong interocular suppression (Baker \& Wade, 2017; Meese et al., 2006;
-Moradi \& Heeger, 2009). There is additional psychophysical evidence
-from matching studies that binocular combination can be close to linear
-for luminance increments (Anstis \& Ho, 1998; Levelt, 1965),
-particularly against a dark background (Baker et al., 2012). Both
-structural and functional data therefore imply that binocular
-combination may differ between spatial and temporal contrast.
+The spatiotemporal profile of stimuli also appears to impact their
+binocular combination. For example, matching studies indicate that
+binocular combination can be close to linear for luminance increments
+(Anstis \& Ho, 1998; Levelt, 1965), particularly against a dark
+background (Baker et al., 2012). This is quite different from the
+`ocularity invariance' (where binocular and monocular stimuli appear
+equal) that is well-established when using spatially modulated stimuli
+such as sine-wave gratings, and implies strong interocular suppression
+(Baker \& Wade, 2017; Meese et al., 2006; Moradi \& Heeger, 2009). Our
+recent work (Segala et al., 2023) has investigated binocular combination
+for flickering discs of luminance, which are DC-balanced across time
+(i.e.~the time-averaged luminance is equal to the background).
+Steady-state EEG responses from early visual cortex and psychophysical
+contrast matching data were both consistent with weak interocular
+suppression when using this stimulus arrangement, but it is currently
+unclear whether this has implications for contrast discrimination
+performance.
 
 The main aim of the present study was to characterise binocular signal
 combination for chromatic stimuli, and for temporal modulations of
@@ -357,31 +375,29 @@ chromatic and achromatic pathways. We therefore preregistered a series
 of psychophysical experiments (see: \url{https://osf.io/3vdga/}). In
 Experiment 1 we replicate the four key pedestal masking conditions of
 Meese et al. (2006) described above for achromatic grating stimuli and
-extend this to both red/green and blue/yellow isoluminant chromatic
-stimuli. In Experiment 2 we explore dichoptic masking within and between
-these stimuli. Experiment 3 repeats the achromatic condition from the
-first experiment but using a temporally modulated disc rather than
-sine-wave gratings. We take a Bayesian approach to data analysis and
-modelling; by fitting a hierarchical version of the two-stage gain
-control model (Meese et al., 2006) we compare posterior parameter
-distributions to understand how model parameters such as the weight of
-interocular suppression vary across visual pathways.
+extend this to both L-M and S-(L+M) isoluminant chromatic stimuli. In
+Experiment 2 we explore dichoptic masking within and between these
+stimuli. Experiment 3 repeats the achromatic condition from the first
+experiment but using a temporally modulated disc rather than sine-wave
+gratings. We take a Bayesian approach to data analysis and modelling; by
+fitting a hierarchical version of the two-stage gain control model
+(Meese et al., 2006) we compare posterior parameter distributions to
+understand how model parameters such as the weight of interocular
+suppression vary across visual pathways.
 
-\hypertarget{materials-methods}{%
-\section{Materials \& Methods}\label{materials-methods}}
+\section{Materials \& Methods}\label{materials-methods}
 
-\hypertarget{participants}{%
-\subsection{Participants}\label{participants}}
+\subsection{Participants}\label{participants}
 
 All experiments were completed by the first author (DHB) and two
 additional participants, who differed for each experiment. Participants
 had no known abnormalities of binocular or colour vision. Written
 informed consent was obtained before data collection began, and all
 procedures were approved by the ethics committee of the Department of
-Psychology at the University of York (ID number 2202).
+Psychology at the University of York (ID number 2202). The study
+conformed to the tenets of the Declaration of Helsinki.
 
-\hypertarget{apparatus-stimuli}{%
-\subsection{Apparatus \& stimuli}\label{apparatus-stimuli}}
+\subsection{Apparatus \& stimuli}\label{apparatus-stimuli}
 
 In Experiments 1 and 2, the stimuli were horizontal sinusoidal gratings
 with a spatial frequency of 1c/deg (see examples in
@@ -392,14 +408,17 @@ cardinal phases. In the achromatic conditions, the sine-wave modulated
 all three monitor colour channels equally (red, green and blue). In the
 L-M condition, we generated isoluminant stimuli for each participant
 (see Procedures) designed to maximise contrast between L and M cones,
-whilst keeping S cone activity constant. In the S-(L+M) condition, the
-isoluminant stimuli maximised S-cone contrast. Stimuli were converted
-from cone space to monitor RGB coordinates using the monitor spectral
-readings and the Stockman-Sharpe 2 degree cone fundamentals (Stockman \&
-Sharpe, 2000). The maximum displayable cone contrasts on our system were
-0.1 for L-M, and 0.88 for S-(L+M). The stimuli in Experiment 3 were
-temporal modulations of luminance applied to a disc made using the same
-raised cosine envelope as described above, but with no further spatial
+whilst keeping S cone activity constant (more accurately, this is a
+\(\Delta L/L - \Delta M/M\) condition, see Cole et al., 1993). In the
+S-(L+M) condition (or more accurately the
+\(\Delta S/S - (\Delta L/L + \Delta M/M)\) condition), the isoluminant
+stimuli maximised S-cone contrast. Stimuli were converted from cone
+space to monitor RGB coordinates using the monitor spectral readings and
+the Stockman-Sharpe 2 degree cone fundamentals (Stockman \& Sharpe,
+2000). The maximum displayable cone contrasts on our system were 0.1 for
+L-M, and 0.88 for S-(L+M). The stimuli in Experiment 3 were temporal
+modulations of luminance applied to a disc made using the same raised
+cosine envelope as described above, but with no further spatial
 modulation. The stimuli counterphase flickered sinusoidally at 4Hz (see
 examples in the lower portion of Figure~\ref{fig-examplestim}). In all
 experiments, we displayed a binocular fusion lock, consisting of three
@@ -408,7 +427,9 @@ central fixation cross was also displayed throughout.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\textwidth,height=\textheight]{Figures/examplestim.pdf}
+\centering{
+
+\includegraphics[width=0.5\textwidth,height=\textheight]{Figures/examplestim.pdf}
 
 }
 
@@ -420,7 +441,7 @@ image, and so the chromatic stimuli are unlikely to appear isoluminant,
 and there may be additional luminance nonlinearities that were not
 present in the stimuli displayed during the experiments.}
 
-\end{figure}
+\end{figure}%
 
 All stimuli were presented on an Iiyama VisionMaster Pro 510 CRT
 monitor, with a refresh rate of 100Hz, and a resolution of 1024 x 768
@@ -440,8 +461,7 @@ detection threshold for each stimulus type. A threshold value of 2
 therefore means that, relative to monocular detection, twice as much
 contrast was required to reach the same level of performance.
 
-\hypertarget{procedure}{%
-\subsection{Procedure}\label{procedure}}
+\subsection{Procedure}\label{procedure}
 
 All experiments took place in a darkened room. Participants placed their
 heads in a chin rest mounted on a height-adjustable table, to which the
@@ -464,18 +484,20 @@ Figure~\ref{fig-isofig}).
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/isosettings.pdf}
+\centering{
+
+\includegraphics{Figures/isosettings.pdf}
 
 }
 
 \caption{\label{fig-isofig}Isoluminance settings from all participants
-in Experiments 1 and 2. Panel (a) shows red/green and panel (b) shows
-blue/yellow settings that were subsequently used to generate stimuli in
-the main experiments. Within each panel, solid lines show the mean
-settings for each participant, and black curves show the range of
-possible stimuli displayed during the adjustment task.}
+in Experiments 1 and 2. Panel (a) shows L-M and panel (b) shows S-(L+M)
+settings that were subsequently used to generate stimuli in the main
+experiments. Within each panel, solid lines show the mean settings for
+each participant, and black curves show the range of possible stimuli
+displayed during the adjustment task.}
 
-\end{figure}
+\end{figure}%
 
 In Experiment 1, participants completed a two-interval-forced-choice
 (2IFC) contrast discrimination task. Stimuli were presented for 200ms,
@@ -501,20 +523,20 @@ In Experiment 2, participants completed a 2IFC dichoptic masking task.
 The stimuli and trial protocol were the same as for Experiment 1, except
 that the target contrast was chosen from a set of 10 possible values,
 determined in advance based on the data of Experiment 1. There were 12
-possible conditions: baseline detection thresholds for achromatic,
-red/green and blue/yellow stimuli, and the nine possible factorial
-pairings obtained by assigning these conditions to be target and
-dichoptic mask stimuli. Mask contrasts were chosen to be approximately
-16 times their (monocular) detection threshold, based on the data from
-Experiment 1. The contrasts were 16\% Michelson contrast for the
-achromatic stimuli, 6.4\% cone contrast for L-M and 56\% cone contrast
-for S-(L+M). Each block of the experiment tested a single condition, and
-consisted of 200 trials. A high contrast example of the target stimulus
-was displayed at the foot of the screen throughout, so that there was no
-ambiguity about the target identity on a given block. Participants
-completed 10 repetitions of each condition (120 blocks of
-\textasciitilde6 minutes each), lasting around 12 hours, for a total of
-72000 trials (pooled across participants).
+possible conditions: baseline detection thresholds for achromatic, L-M
+and S-(L+M) stimuli, and the nine possible factorial pairings obtained
+by assigning these conditions to be target and dichoptic mask stimuli.
+Mask contrasts were chosen to be approximately 16 times their
+(monocular) detection threshold, based on the data from Experiment 1.
+The contrasts were 16\% Michelson contrast for the achromatic stimuli,
+6.4\% cone contrast for L-M and 56\% cone contrast for S-(L+M). Each
+block of the experiment tested a single condition, and consisted of 200
+trials. A high contrast example of the target stimulus was displayed at
+the foot of the screen throughout, so that there was no ambiguity about
+the target identity on a given block. Participants completed 10
+repetitions of each condition (120 blocks of \textasciitilde6 minutes
+each), lasting around 12 hours, for a total of 72000 trials (pooled
+across participants).
 
 In Experiment 3, the achromatic conditions from Experiment 1 were
 repeated using a flickering disc stimulus. The stimulus counterphase
@@ -523,9 +545,8 @@ temporal modulation). All other procedures were the same as for
 Experiment 1, and the experiment comprised a total of 24610 trials
 (pooled across participants).
 
-\hypertarget{data-analysis-and-computational-modelling}{%
 \subsection{Data analysis and computational
-modelling}\label{data-analysis-and-computational-modelling}}
+modelling}\label{data-analysis-and-computational-modelling}
 
 Psychometric functions from each experiment were fit using
 \emph{psignifit} 4 to estimate threshold and slope parameters via a
@@ -544,13 +565,13 @@ between the model and data. We normalized the thresholds and pedestal
 contrasts to the appropriate monocular threshold for each stimulus type.
 The model is defined by a series of equations:
 
-\begin{equation}\protect\hypertarget{eq-s1l}{}{\mathrm{Stage1}_L = \frac{C_L^m}{S + C_L + \omega C_R},}\label{eq-s1l}\end{equation}
+\begin{equation}\phantomsection\label{eq-s1l}{\mathrm{Stage1}_L = \frac{C_L^m}{S + C_L + \omega C_R},}\end{equation}
 
-\begin{equation}\protect\hypertarget{eq-s1r}{}{\mathrm{Stage1}_R = \frac{C_R^m}{S + C_R + \omega C_L},}\label{eq-s1r}\end{equation}
+\begin{equation}\phantomsection\label{eq-s1r}{\mathrm{Stage1}_R = \frac{C_R^m}{S + C_R + \omega C_L},}\end{equation}
 
-\begin{equation}\protect\hypertarget{eq-binsum}{}{\mathrm{binsum} = \mathrm{Stage1}_L + \mathrm{Stage1}_R,}\label{eq-binsum}\end{equation}
+\begin{equation}\phantomsection\label{eq-binsum}{\mathrm{binsum} = \mathrm{Stage1}_L + \mathrm{Stage1}_R,}\end{equation}
 
-\begin{equation}\protect\hypertarget{eq-s2}{}{\mathrm{Stage2} = \frac{\mathrm{binsum}^p}{Z + \mathrm{binsum}^q},}\label{eq-s2}\end{equation}
+\begin{equation}\phantomsection\label{eq-s2}{\mathrm{Stage2} = \frac{\mathrm{binsum}^p}{Z + \mathrm{binsum}^q},}\end{equation}
 
 where \(C_L\) and \(C_R\) are the (normalized) contrasts displayed to
 the left and right eyes, and \(m\), \(S\), \(\omega\), \(p\), \(q\) and
@@ -563,11 +584,11 @@ Gaussian used when fitting the psychometric functions to estimate
 thresholds). Thresholds are defined by iteratively adjusting the target
 contrast until the following equality is satisfied:
 
-\begin{equation}\protect\hypertarget{eq-thd}{}{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}} = k,}\label{eq-thd}\end{equation}
+\begin{equation}\phantomsection\label{eq-thd}{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}} = k,}\end{equation}
 
 and \(d'\) (d-prime) for a single target level is defined as:
 
-\begin{equation}\protect\hypertarget{eq-dprime}{}{d' = \frac{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}}}{k/\tau},}\label{eq-dprime}\end{equation}
+\begin{equation}\phantomsection\label{eq-dprime}{d' = \frac{\mathrm{Stage2}_{\mathrm{target+pedestal}} - \mathrm{Stage2}_{\mathrm{pedestal}}}{k/\tau},}\end{equation}
 
 where the parameter \(\tau\) reflects the value of \(d'\) at detection
 threshold. Defining threshold as the 75\% correct point on the
@@ -582,34 +603,34 @@ data set, and chose the solution for each data set that gave the
 smallest root mean squared error (RMSE) between the model and data.
 
 We also implemented a Bayesian hierarchical version of the model using
-the Stan language (Carpenter et al., 2017). This used a binomial
-generator function to model the proportion correct data at each target
-level, and was fit simultaneously to all participants for a given
-experiment, but separately for each chromatic condition of Experiment 1,
-and the flickering disc data from Experiment 3 (i.e.~four fits in total,
-as for the simplex fitting). Prior distributions for the parameters
-\emph{p}, \emph{q}, \emph{m} and \(\omega\) were Gaussian, with means
-determined from published values (see first row of
-Table~\ref{tbl-parametertable}). Priors for parameters \emph{S},
-\emph{Z} and \emph{k} were uniform. This modelling primarily focuses on
-examining posterior parameter distributions, rather than a model
-comparison approach. We generated over 1 million posterior samples for
-the model, and retained 10\% of them for plotting.
+the Stan probabilistic programming language (Carpenter et al., 2017).
+This used a binomial generator function to model the proportion correct
+data at each target level, and was fit simultaneously to all
+participants for a given experiment, but separately for each chromatic
+condition of Experiment 1, and the flickering disc data from Experiment
+3 (i.e.~four fits in total, as for the simplex fitting). Prior
+distributions for the parameters \emph{p}, \emph{q}, \emph{m} and
+\(\omega\) were Gaussian, with means determined from published values
+(see first row of Table~\ref{tbl-parametertable}). Priors for parameters
+\emph{S}, \emph{Z} and \emph{k} were uniform. This modelling primarily
+focuses on examining posterior parameter distributions, rather than a
+model comparison approach. We generated over 1 million posterior samples
+for the model, and retained 10\% of them for plotting.
 
 Finally, we adapted the two stage model to include parallel pathways to
-process achromatic, red/green and blue/yellow stimuli, that mutually
-suppress each other. We added additional suppressive terms at the first
-(monocular) stage of the model, for example:
+process achromatic, L-M and S-(L+M) stimuli, that mutually suppress each
+other. We added additional suppressive terms at the first (monocular)
+stage of the model, for example:
 
-\begin{equation}\protect\hypertarget{eq-s1multi}{}{^{AC}\mathrm{Stage1}_L = \frac{AC_L^m}{S + AC_L + \omega_A AC_R + \omega_R RG_R + \omega_B BY_R},}\label{eq-s1multi}\end{equation}
+\begin{equation}\phantomsection\label{eq-s1multi}{^{AC}\mathrm{Stage1}_L = \frac{AC_L^m}{S + AC_L + \omega_A AC_R + \omega_R RG_R + \omega_B BY_R},}\end{equation}
 
 where \emph{AC} represents the achromatic contrast, \emph{RG} represents
-the red/green contrast, \emph{BY} represents the blue/yellow contrast,
-and \(\omega_A\), \(\omega_R\) and \(\omega_B\) are the accompanying
-weights of interocular suppression. There is an equivalent expression
-for the right eye, and for each of the two isoluminant chromatic
-pathways. To simplify the model, and avoid free parameters that are
-poorly constrained by the data, we fixed several parameters (\emph{p},
+the L-M contrast, \emph{BY} represents the S-(L+M) contrast, and
+\(\omega_A\), \(\omega_R\) and \(\omega_B\) are the accompanying weights
+of interocular suppression. There is an equivalent expression for the
+right eye, and for each of the two isoluminant chromatic pathways. To
+simplify the model, and avoid free parameters that are poorly
+constrained by the data, we fixed several parameters (\emph{p},
 \emph{q}, \emph{m}, \emph{S}, \emph{k}, and \(\omega\) for the
 within-pathway suppression) at the values from the fits from Experiment
 1 (Table~\ref{tbl-parametertable}, lower rows). This left 9 free
@@ -619,28 +640,25 @@ were again estimated within a Bayesian hierarchical framework, using the
 binomial proportion correct data from Experiment 2. Note that the model
 as specified does not currently include monocular suppression between
 different pathways, as we did not collect any data for these conditions.
-Previous work (Chen et al., 2000) has measured such interactions, and
-they could in principle be incorporated into the denominator of either
-stage 1 or stage 2 in the model.
+Previous work (e.g. Chen et al., 2000; Mullen \& Losada, 1994) has
+measured such interactions, and they could in principle be incorporated
+into the denominator of either stage 1 or stage 2 in the model.
 
-\hypertarget{open-science-practices}{%
-\subsection{Open science practices}\label{open-science-practices}}
+\subsection{Open science practices}\label{open-science-practices}
 
 All experimental code, raw data and analysis scripts are available at:
 https://osf.io/3vdga/. The linked GitHub repository also contains a
-fully reproducible version of the manuscript. Note that we deviated
-slightly from the planned preregistration, in that we did not collect
-data for chromatic flickering discs, or for the cross-pathway dichoptic
-experiment using disc stimuli. This is because the grating data from
-Experiments 1 and 2, and the achromatic disc data from Experiment 3,
-were sufficient to address the questions we had hoped to answer from
-these experiments.
+fully computationally reproducible version of the manuscript. Note that
+we deviated slightly from the planned preregistration, in that we did
+not collect data for chromatic flickering discs, or for the
+cross-pathway dichoptic experiment using disc stimuli. This is because
+the grating data from Experiments 1 and 2, and the achromatic disc data
+from Experiment 3, were sufficient to address the questions we had hoped
+to answer from these experiments.
 
-\hypertarget{results}{%
-\section{Results}\label{results}}
+\section{Results}\label{results}
 
-\hypertarget{experiment-1}{%
-\subsection{Experiment 1}\label{experiment-1}}
+\subsection{Experiment 1}\label{experiment-1}
 
 Dipper functions from Experiment 1 are displayed in the upper row of
 Figure~\ref{fig-dipperfig}. Panel (a) shows the achromatic results,
@@ -659,7 +677,9 @@ highest 4 pedestal contrasts).
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/dipperssimplex.pdf}
+\centering{
+
+\includegraphics{Figures/dipperssimplex.pdf}
 
 }
 
@@ -673,24 +693,23 @@ each panel. Curves in panels (a-c) show the best fitting models,
 optimized using a simplex algorithm, and RMSE values give the root mean
 squared errors of the fits.}
 
-\end{figure}
+\end{figure}%
 
-A similar pattern of results was observed for both the red/green and
-blue/yellow isoluminant stimuli (see Figure~\ref{fig-dipperfig}b,c).
-Summation at threshold was a factor of 1.71 (4.66dB) for the red/green
-targets, and a factor of 1.73 (4.77dB) for the blue/yellow targets, and
-so was marginally higher than for achromatic stimuli. The general
-character of the dipper functions was largely consistent with the
-achromatic results, though we observed shallower facilitation and weaker
-masking, especially for the blue/yellow stimuli. For example, the
-strongest facilitation in the binocular condition for achromatic stimuli
-was a factor of 2.63, whereas it reduced to a factor of 2.35 for
-red/green stimuli and 1.57 for blue/yellow stimuli. The slope of the
-binocular dipper handle was 0.52 for achromatic stimuli, 0.58 for
-red/green stimuli, and 0.34 for blue/yellow stimuli. Dichoptic masking
-remained as strong for the chromatic conditions as for the achromatic
-stimuli (regression slopes of 1.3 for red/green and 1.21 for
-blue/yellow). The pattern of results for individual participants was
+A similar pattern of results was observed for both the L-M and S-(L+M)
+isoluminant stimuli (see Figure~\ref{fig-dipperfig}b,c). Summation at
+threshold was a factor of 1.71 (4.66dB) for the L-M targets, and a
+factor of 1.73 (4.77dB) for the S-(L+M) targets, and so was marginally
+higher than for achromatic stimuli. The general character of the dipper
+functions was largely consistent with the achromatic results, though we
+observed shallower facilitation and weaker masking, especially for the
+S-(L+M) stimuli. For example, the strongest facilitation in the
+binocular condition for achromatic stimuli was a factor of 2.63, whereas
+it reduced to a factor of 2.35 for L-M stimuli and 1.57 for S-(L+M)
+stimuli. The slope of the binocular dipper handle was 0.52 for
+achromatic stimuli, 0.58 for L-M stimuli, and 0.34 for S-(L+M) stimuli.
+Dichoptic masking remained as strong for the chromatic conditions as for
+the achromatic stimuli (regression slopes of 1.3 for L-M and 1.21 for
+S-(L+M)). The pattern of results for individual participants was
 consistent with the group averages, as shown in
 Figure~\ref{fig-individualdippers}.
 
@@ -714,8 +733,7 @@ slope of the psychometric function in more detail for dichoptic masking
 using the method of constant stimuli, as well as exploring dichoptic
 interactions between chromatic channels.
 
-\hypertarget{experiment-2}{%
-\subsection{Experiment 2}\label{experiment-2}}
+\subsection{Experiment 2}\label{experiment-2}
 
 In Experiment 2 we focussed on the dichoptic condition at a single mask
 contrast, and measured full psychometric functions using the method of
@@ -734,7 +752,9 @@ mask has a strong effect on thresholds.
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/MCSdata.pdf}
+\centering{
+
+\includegraphics{Figures/MCSdata.pdf}
 
 }
 
@@ -749,22 +769,21 @@ geometric mean psychometric slope value for each masking condition,
 expressed in Weibull \(\beta\) units. Contrast values are normalized to
 the target only threshold for each stimulus type.}
 
-\end{figure}
+\end{figure}%
 
 Threshold elevation was greatest when the target and mask had the same
 chromaticity - notice that the psychometric function is shifted furthest
 to the right for the achromatic target with an achromatic mask (white
-and black circles in Figure~\ref{fig-MCSfig}a), for the red/green target
-with a red/green mask (red and green circles in
-Figure~\ref{fig-MCSfig}b), and for the blue/yellow target with a
-blue/yellow mask (blue and yellow circles in Figure~\ref{fig-MCSfig}c).
-Masking was weakest between achromatic masks/targets and chromatic
-masks/targets. Finally, there was an intermediate level of masking
-between red/green and blue/yellow stimuli. This is summarised in
-Figure~\ref{fig-MCSfig}g, which represents threshold elevation for each
-combination of target and mask chromaticity. Note that the positive
-diagonal exhibits the highest values, and represents threshold elevation
-between targets and masks of the same chromaticity.
+and black circles in Figure~\ref{fig-MCSfig}a), for the L-M target with
+an L-M mask (red and green circles in Figure~\ref{fig-MCSfig}b), and for
+the S-(L+M) target with a S-(L+M) mask (blue and yellow circles in
+Figure~\ref{fig-MCSfig}c). Masking was weakest between achromatic
+masks/targets and chromatic masks/targets. Finally, there was an
+intermediate level of masking between L-M and S-(L+M) stimuli. This is
+summarised in Figure~\ref{fig-MCSfig}g, which represents threshold
+elevation for each combination of target and mask chromaticity. Note
+that the positive diagonal exhibits the highest values, and represents
+threshold elevation between targets and masks of the same chromaticity.
 
 We also calculated the slope of the psychometric function for each
 condition, in equivalent Weibull \(\beta\) units. In the absence of a
@@ -780,8 +799,7 @@ However, we did not see such markedly steep functions for any of the
 cross-chromaticity masking conditions (average \(\beta\) = 2.83 for the
 off-diagonal values).
 
-\hypertarget{experiment-3}{%
-\subsection{Experiment 3}\label{experiment-3}}
+\subsection{Experiment 3}\label{experiment-3}
 
 In our final experiment, we again measured dipper functions, but this
 time for a disc temporally modulating in luminance. This was motivated
@@ -803,28 +821,30 @@ arrangements at high contrasts.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.8\textwidth,height=\textheight]{Figures/discdata.pdf}
+\centering{
+
+\includegraphics[width=0.8\textwidth,height=\textheight]{Figures/discdata.pdf}
 
 }
 
 \caption{\label{fig-discdata}Thresholds for the flickering disc
 experiment. Plotting conventions mirror those in Figure 4.}
 
-\end{figure}
+\end{figure}%
 
-\hypertarget{computational-modelling}{%
-\subsection{Computational modelling}\label{computational-modelling}}
+\subsection{Computational modelling}\label{computational-modelling}
 
-\hypertarget{tbl-parametertable}{}
 \begin{table}
-\caption{\label{tbl-parametertable}Summary of fitted model parameters. The top row gives the best fitting
-parameters from the study of Meese et al. (2006). The second section
-shows the best fitting parameters from simplex fits to the averaged
-thresholds for each experiment. The final rows show the posterior
-parameter estimates from the Bayesian model, fitted to each data set
-from Experiments 1 and 3. }\tabularnewline
 
-\centering
+\caption{\label{tbl-parametertable}Summary of fitted model parameters.
+The top row gives the best fitting parameters from the study of Meese et
+al.~(2006). The second section shows the best fitting parameters from
+simplex fits to the averaged thresholds for each experiment. The final
+rows show the posterior parameter estimates from the Bayesian model,
+fitted to each data set from Experiments 1 and 3.}
+
+\centering{
+
 \begin{tabular}[t]{lrrrrrrrr}
 \toprule
 \textbf{\em{Model fit}} & \textbf{\em{p}} & \textbf{\em{q}} & \textbf{\em{m}} & \textbf{\em{S}} & \textbf{\em{Z}} & \textbf{\em{$\omega$}} & \textbf{\em{k}} & \textbf{\em{RMSE}}\\
@@ -833,18 +853,21 @@ Meese et al. (2006) & 7.99 & 6.59 & 1.28 & 0.99 & 0.08 & 1.00 & 0.19 & \\
 \midrule
 \textbf{Simplex fits} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{}\\
 Achromatic gratings & 5.96 & 4.69 & 1.34 & 0.87 & 0.13 & 1.00 & 0.20 & 1.59 dB\\
-Red/green gratings & 7.77 & 5.19 & 1.17 & 0.55 & 0.07 & 1.00 & 0.17 & 1.39 dB\\
-Blue/yellow gratings & 16.01 & 11.56 & 1.13 & 0.33 & 0.00 & 0.99 & 0.27 & 1.46 dB\\
+L-M gratings & 7.77 & 5.19 & 1.17 & 0.55 & 0.07 & 1.00 & 0.17 & 1.39 dB\\
+S-(L+M) gratings & 16.01 & 11.56 & 1.13 & 0.33 & 0.00 & 0.99 & 0.27 & 1.46 dB\\
 Flickering discs & 5.62 & 4.51 & 1.26 & 0.95 & 0.25 & 0.89 & 0.13 & 1.05 dB\\
 \midrule
 \textbf{Bayesian model} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{} & \textbf{}\\
 Achromatic gratings & 7.06 & 5.63 & 1.27 & 0.63 & 0.08 & 0.98 & 0.30 & \\
-Red/green gratings & 5.11 & 3.63 & 1.24 & 1.22 & 0.03 & 1.05 & 0.19 & \\
-Blue/yellow gratings & 6.78 & 5.34 & 1.24 & 0.61 & 0.01 & 0.95 & 0.34 & \\
+L-M gratings & 5.11 & 3.63 & 1.24 & 1.22 & 0.03 & 1.05 & 0.19 & \\
+S-(L+M) gratings & 6.78 & 5.34 & 1.24 & 0.61 & 0.01 & 0.95 & 0.34 & \\
 Flickering discs & 7.16 & 5.76 & 1.25 & 0.65 & 0.13 & 0.87 & 0.24 & \\
 \bottomrule
 \end{tabular}
-\end{table}
+
+}
+
+\end{table}%
 
 For consistency with previous work, we initially performed least-squares
 fits of the two-stage model (Meese et al., 2006) for each of the
@@ -858,8 +881,8 @@ weight of interocular suppression (\(\omega\) in the model) was
 implicitly fixed at 1. Here we allowed it to vary, but it still received
 a value very close to 1 in all of our grating conditions, and slightly
 below 1 (0.89) for our flickering discs. The exponent values (\emph{p}
-and \emph{q}) for the blue/yellow gratings are rather different from
-those of the other conditions. In previous work (Meese et al., 2006) the
+and \emph{q}) for the S-(L+M) gratings are rather different from those
+of the other conditions. In previous work (Meese et al., 2006) the
 second stage gain control nonlinearity (Equation~\ref{eq-s2}) does
 typically have quite substantial exponent values, which balance the
 relatively mild nonlinearity at the first stage, and produce a
@@ -894,7 +917,9 @@ intervals of the distribution to a value of \(\omega=1\).
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/stanoutput.pdf}
+\centering{
+
+\includegraphics{Figures/stanoutput.pdf}
 
 }
 
@@ -908,7 +933,7 @@ Distributions were generated from 1000000 samples per data set, using a
 Markov Chain Monte Carlo sampling algorithm. Note the logarithmic x-axis
 for all posterior plots.}
 
-\end{figure}
+\end{figure}%
 
 Finally we fitted an extended model, that included interocular
 suppression between the different pathways (see
@@ -931,22 +956,23 @@ absence here.
 Figure~\ref{fig-MCSmodel}d,e shows the model estimates for the weight of
 interocular suppression in each combination of target and mask
 chromaticity. The weakest suppression was between achromatic targets and
-masks and blue/yellow targets and masks, and the strongest suppression
-was between red/green targets and blue/yellow masks. Note that the
-weight parameter value of \(\omega\) = 1.11 for this condition is
-slightly higher than that of the within-channel weights (values around
-1), even though the within-channel conditions generate more threshold
-elevation. In the model, high thresholds for within-channel dichoptic
-masks occur because the target and mask are summed together, which
-causes additional masking (see Baker et al., 2013). However it is clear
-that the posterior distribution of the weight parameter is quite broad
-and overlaps 1, so this difference may not be meaningful. There do not
-appear to be any other salient patterns in the suppressive weight
-estimates.
+masks and S-(L+M) targets and masks, and the strongest suppression was
+between L-M targets and S-(L+M) masks. Note that the weight parameter
+value of \(\omega\) = 1.11 for this condition is slightly higher than
+that of the within-channel weights (values around 1), even though the
+within-channel conditions generate more threshold elevation. In the
+model, high thresholds for within-channel dichoptic masks occur because
+the target and mask are summed together, which causes additional masking
+(see Baker et al., 2013). However it is clear that the posterior
+distribution of the weight parameter is quite broad and overlaps 1, so
+this difference may not be meaningful. There do not appear to be any
+other salient patterns in the suppressive weight estimates.
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/MCSmodel.pdf}
+\centering{
+
+\includegraphics{Figures/MCSmodel.pdf}
 
 }
 
@@ -958,10 +984,9 @@ the posterior distributions for each weight parameter. The lower right
 plot gives the legends for the upper row (top) and the posterior
 distributions in panel (e).}
 
-\end{figure}
+\end{figure}%
 
-\hypertarget{discussion}{%
-\section{Discussion}\label{discussion}}
+\section{Discussion}\label{discussion}
 
 Across three psychophysical experiments, we have demonstrated that:
 
@@ -972,7 +997,7 @@ Across three psychophysical experiments, we have demonstrated that:
   that for achromatic stimuli
 \item
   Interocular suppression is strongest within a post-retinal pathway,
-  and weakest between the achromatic and blue/yellow pathways
+  and weakest between the achromatic and S-(L+M) pathways
 \item
   Binocular combination occurs similarly for spatial and temporal
   luminance modulations
@@ -981,8 +1006,7 @@ Across three psychophysical experiments, we have demonstrated that:
 We now discuss the relationship to previous work, and consider the
 likely physiological substrates of these effects.
 
-\hypertarget{summation-at-threshold}{%
-\subsection{Summation at threshold}\label{summation-at-threshold}}
+\subsection{Summation at threshold}\label{summation-at-threshold}
 
 Estimates of the binocular summation ratio at threshold fell within the
 range \(\sqrt{2}\) to 2 for all four stimuli tested here. Consistent
@@ -997,10 +1021,15 @@ of 2, and an exponent of \(m = 2\) produces a ratio of \(\sqrt{2}\).
 Both the simplex and Bayesian model fits (see
 Table~\ref{tbl-parametertable}) generated parameter estimates in the
 range \(1 < m < 1.4\), consistent with the high levels of summation
-observed empirically.
+observed empirically. Note that the exponents at stage 2 (\(p\) and
+\(q\)) have no effect on binocular summation at threshold, because they
+impact after the signals have been combined. The differences in these
+parameter values between chromatic conditions (see
+Table~\ref{tbl-parametertable}) primarily reflects differences in the
+slope of the dipper handle (chromatic conditions are shallower), and are
+of incidental interest for our main questions.
 
-\hypertarget{interocular-suppression}{%
-\subsection{Interocular suppression}\label{interocular-suppression}}
+\subsection{Interocular suppression}\label{interocular-suppression}
 
 The weight of interocular suppression is represented by the model
 parameter, \(\omega\) (Equation~\ref{eq-s1l} and Equation~\ref{eq-s1r}).
@@ -1025,8 +1054,39 @@ play a role. Future work should manipulate the background luminance
 systematically to better understand how this modulates interocular
 suppression.
 
-\hypertarget{psychometric-slopes}{%
-\subsection{Psychometric slopes}\label{psychometric-slopes}}
+Strong interocular suppression is responsible for the convergence of
+monocular and binocular dipper handles (e.g. Legge, 1984) at high
+pedestal contrasts (see Figure~\ref{fig-dipperfig}). In the model,
+monocular stimuli avoid the impact of interocular suppression, because
+the unstimulated eye sees a blank screen, and so contributes a contrast
+of zero to the denominator of the stimulated eye. Binocular stimuli
+receive strong suppression, which acts to approximately halve the
+excitation when contrasts in the two eyes are equal (see Georgeson et
+al., 2016; Meese et al., 2006). This normalization leads to very similar
+responses for monocular and binocular stimulation. In the auditory
+system, binaural combination of amplitude modulated signals involves
+much weaker suppression between channels, and the monaural and binaural
+dipper handles do not converge at high contrasts (Baker et al., 2020).
+
+One phenomenon that often occurs with conflicting dichoptic stimuli is
+binocular rivalry, and it is worth considering how this might impact the
+results of Experiment 2, where the two eyes often saw stimuli of
+different chromaticities. However rivalry typically only `kicks in' at
+presentation durations longer than the 200ms used here (see e.g. Wolfe,
+1983), and certainly rivalry alternations need much longer presentations
+to be clearly observed. In a dichoptic masking paradigm it is often
+difficult to distinguish dichoptic fusion from dominance of one eye over
+the other; indeed, interocular suppression of sufficient strength would
+render the weaker stimulus invisible. On the other hand, if the stimuli
+appear fused, we might expect dichoptic colour mixing to occur (Kingdom
+\& Libenson, 2015; Kingdom \& Wang, 2015), whereas if one eye dominates
+the colour percept would be equivalent to monocular presentation of the
+dominant stimulus. Here we used a performance task (2AFC
+detection/discrimination), and did not explicitly ask participants about
+the stimulus appearance. Future studies could use matching and
+adjustment tasks to investigate this further.
+
+\subsection{Psychometric slopes}\label{psychometric-slopes}
 
 Previous work has demonstrated that the slope of the psychometric
 function in 2AFC tasks can distinguish different types of masking,
@@ -1044,8 +1104,7 @@ masking (Meese \& Baker, 2009), surround masking (Yu et al., 2002), and
 masking from broadband noise (Baker \& Meese, 2012; Lu \& Dosher, 2008),
 which also do not impact psychometric slopes.
 
-\hypertarget{physiological-substrates}{%
-\subsection{Physiological substrates}\label{physiological-substrates}}
+\subsection{Physiological substrates}\label{physiological-substrates}
 
 Recent evidence indicates that the physiological substrate of
 interocular suppression may be neurons in layer 4 of primary visual
@@ -1077,8 +1136,7 @@ binocular summation at a later stage of processing for chromatic
 stimuli, and potentially also for very low spatial frequency luminance
 modulations also processed in blobs (Economides et al., 2011).
 
-\hypertarget{conclusions}{%
-\section{Conclusions}\label{conclusions}}
+\section{Conclusions}\label{conclusions}
 
 Here we provide estimates of interocular suppression within and between
 the three primary post-retinal visual pathways. These results show that
@@ -1088,250 +1146,296 @@ findings could be applied when building models to predict perception of
 binocular images and movies, for example those generated by virtual and
 augmented reality systems, or in 3D cinema and television.
 
-\hypertarget{acknowledgements}{%
-\section{Acknowledgements}\label{acknowledgements}}
+\section{Acknowledgements}\label{acknowledgements}
 
 Supported by BBSRC grant BB/V007580/1 awarded to DHB and ARW.
 
-\hypertarget{references}{%
-\section{References}\label{references}}
+\section{References}\label{references}
 
-\hypertarget{refs}{}
+\phantomsection\label{refs}
 \begin{CSLReferences}{1}{0}
-\leavevmode\vadjust pre{\hypertarget{ref-Anstis1998}{}}%
+\bibitem[\citeproctext]{ref-Anstis1998}
 Anstis, S., \& Ho, A. (1998). Nonlinear combination of luminance
 excursions during flicker, simultaneous contrast, afterimages and
 binocular fusion. \emph{Vision Res}, \emph{38}(4), 523--539.
 \url{https://doi.org/10.1016/s0042-6989(97)00167-3}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Baker2018}{}}%
+\bibitem[\citeproctext]{ref-Baker2018}
 Baker, D. H., Lygo, F. A., Meese, T. S., \& Georgeson, M. A. (2018).
 Binocular summation revisited: Beyond \(\sqrt{2}\). \emph{Psychol Bull},
 \emph{144}(11), 1186--1199. \url{https://doi.org/10.1037/bul0000163}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Baker2007b}{}}%
+\bibitem[\citeproctext]{ref-Baker2007b}
 Baker, D. H., \& Meese, T. S. (2007). Binocular contrast interactions:
 Dichoptic masking is not a single process. \emph{Vision Res},
 \emph{47}(24), 3096--3107.
 \url{https://doi.org/10.1016/j.visres.2007.08.013}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Baker2012b}{}}%
+\bibitem[\citeproctext]{ref-Baker2012b}
 Baker, D. H., \& Meese, T. S. (2012). Zero-dimensional noise: The best
 mask you never saw. \emph{J Vis}, \emph{12}(10).
 \url{https://doi.org/10.1167/12.10.20}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Baker2007}{}}%
+\bibitem[\citeproctext]{ref-Baker2007}
 Baker, D. H., Meese, T. S., \& Georgeson, M. A. (2007). Binocular
 interaction: Contrast matching and contrast discrimination are predicted
 by the same model. \emph{Spat Vis}, \emph{20}(5), 397--413.
 \url{https://doi.org/10.1163/156856807781503622}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Baker2013}{}}%
+\bibitem[\citeproctext]{ref-Baker2013}
 Baker, D. H., Meese, T. S., \& Georgeson, M. A. (2013). Paradoxical
 psychometric functions ("swan functions") are explained by dilution
 masking in four stimulus dimensions. \emph{{iPerception}}, \emph{4}(1),
 17--35. \url{https://doi.org/10.1068/i0552}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Baker2017}{}}%
+\bibitem[\citeproctext]{ref-Baker2020}
+Baker, D. H., Vilidaite, G., McClarnon, E., Valkova, E., Bruno, A., \&
+Millman, R. E. (2020). Binaural summation of amplitude modulation
+involves weak interaural suppression. \emph{Sci Rep}, \emph{10}(1),
+3560. \url{https://doi.org/10.1038/s41598-020-60602-5}
+
+\bibitem[\citeproctext]{ref-Baker2017}
 Baker, D. H., \& Wade, A. R. (2017). Evidence for an optimal algorithm
 underlying signal combination in human visual cortex. \emph{Cereb
 Cortex}, \emph{27}(1), 254--264.
 \url{https://doi.org/10.1093/cercor/bhw395}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Baker2012}{}}%
+\bibitem[\citeproctext]{ref-Baker2012}
 Baker, D. H., Wallis, S. A., Georgeson, M. A., \& Meese, T. S. (2012).
 Nonlinearities in the binocular combination of luminance and contrast.
 \emph{Vision Res}, \emph{56}, 1--9.
 \url{https://doi.org/10.1016/j.visres.2012.01.008}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Campbell1965}{}}%
+\bibitem[\citeproctext]{ref-Campbell1965}
 Campbell, F. W., \& Green, D. G. (1965). Monocular versus binocular
 visual acuity. \emph{Nature}, \emph{208}(5006), 191--192.
 \url{https://doi.org/10.1038/208191a0}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Carpenter2017}{}}%
+\bibitem[\citeproctext]{ref-Carpenter2017}
 Carpenter, B., Gelman, A., Hoffman, M. D., Lee, D., Goodrich, B.,
 Betancourt, M., Brubaker, M., Guo, J., Li, P., \& Riddell, A. (2017).
 Stan: A probabilistic programming language. \emph{Journal of Statistical
 Software}, \emph{76}(1), 1--32.
 \url{https://doi.org/10.18637/jss.v076.i01}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Chatterjee2021}{}}%
+\bibitem[\citeproctext]{ref-Chatterjee2021}
 Chatterjee, S., Ohki, K., \& Reid, R. C. (2021). Chromatic micromaps in
 primary visual cortex. \emph{Nat Commun}, \emph{12}(1), 2315.
 \url{https://doi.org/10.1038/s41467-021-22488-3}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Chen2000}{}}%
+\bibitem[\citeproctext]{ref-Chen2000}
 Chen, C., Foley, J. M., \& Brainard, D. H. (2000). Detection of
 chromoluminance patterns on chromoluminance pedestals i: Threshold
 measurements. \emph{Vision Res}, \emph{40}(7), 773--788.
 \url{https://doi.org/10.1016/s0042-6989(99)00227-8}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Dougherty2019}{}}%
+\bibitem[\citeproctext]{ref-Cole1993}
+Cole, G. R., Hine, T., \& McIlhagga, W. (1993). Detection mechanisms in
+l-, m-, and s-cone contrast space. \emph{J Opt Soc Am A}, \emph{10}(1),
+38--51. \url{https://doi.org/10.1364/josaa.10.000038}
+
+\bibitem[\citeproctext]{ref-Cole1990}
+Cole, G. R., Stromeyer, C. F., 3rd, \& Kronauer, R. E. (1990). Visual
+interactions with luminance and chromatic stimuli. \emph{J Opt Soc Am
+A}, \emph{7}(1), 128--140. \url{https://doi.org/10.1364/josaa.7.000128}
+
+\bibitem[\citeproctext]{ref-Dougherty2019}
 Dougherty, K., Cox, M. A., Westerberg, J. A., \& Maier, A. (2019).
 Binocular modulation of monocular V1 neurons. \emph{Curr Biol},
 \emph{29}(3), 381--391.e4.
 \url{https://doi.org/10.1016/j.cub.2018.12.004}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Economides2011}{}}%
+\bibitem[\citeproctext]{ref-Economides2011}
 Economides, J. R., Sincich, L. C., Adams, D. L., \& Horton, J. C.
 (2011). Orientation tuning of cytochrome oxidase patches in macaque
 primary visual cortex. \emph{Nat Neurosci}, \emph{14}(12), 1574--1580.
 \url{https://doi.org/10.1038/nn.2958}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Edwards1995}{}}%
-Edwards, D. P., Purpura, K. P., \& Kaplan, E. (1995). Contrast
-sensitivity and spatial frequency response of primate cortical neurons
-in and around the cytochrome oxidase blobs. \emph{Vision Res},
-\emph{35}(11), 1501--1523.
-\url{https://doi.org/10.1016/0042-6989(94)00253-i}
+\bibitem[\citeproctext]{ref-Ernst2002}
+Ernst, M. O., \& Banks, M. S. (2002). Humans integrate visual and haptic
+information in a statistically optimal fashion. \emph{Nature},
+\emph{415}(6870), 429--433. \url{https://doi.org/10.1038/415429a}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Foley1981}{}}%
+\bibitem[\citeproctext]{ref-Foley1981}
 Foley, J. M., \& Legge, G. E. (1981). Contrast detection and
 near-threshold discrimination in human vision. \emph{Vision Res},
 \emph{21}(7), 1041--1053.
 \url{https://doi.org/10.1016/0042-6989(81)90009-2}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Georgeson2016}{}}%
+\bibitem[\citeproctext]{ref-Georgeson2016}
 Georgeson, M. A., Wallis, S. A., Meese, T. S., \& Baker, D. H. (2016).
 Contrast and lustre: A model that accounts for eleven different forms of
 contrast discrimination in binocular vision. \emph{Vision Res},
 \emph{129}, 98--118. \url{https://doi.org/10.1016/j.visres.2016.08.001}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Horton1981}{}}%
+\bibitem[\citeproctext]{ref-Horton1981}
 Horton, J. C., \& Hubel, D. H. (1981). Regular patchy distribution of
 cytochrome oxidase staining in primary visual cortex of macaque monkey.
 \emph{Nature}, \emph{292}(5825), 762--764.
 \url{https://doi.org/10.1038/292762a0}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Kim2013}{}}%
+\bibitem[\citeproctext]{ref-Kim2013}
 Kim, Y. J., Gheiratmand, M., \& Mullen, K. T. (2013). Cross-orientation
 masking in human color vision: Application of a two-stage model to
 assess dichoptic and monocular sources of suppression. \emph{J Vis},
 \emph{13}(6), 15. \url{https://doi.org/10.1167/13.6.15}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Kim2015}{}}%
+\bibitem[\citeproctext]{ref-Kim2015}
 Kim, Y. J., \& Mullen, K. T. (2015). The dynamics of cross-orientation
 masking at monocular and interocular sites. \emph{Vision Res},
 \emph{116}(Pt A), 80--91.
 \url{https://doi.org/10.1016/j.visres.2015.09.008}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Kingdom2015}{}}%
+\bibitem[\citeproctext]{ref-Kingdom2015}
 Kingdom, F. A. A., \& Libenson, L. (2015). Dichoptic color saturation
 mixture: Binocular luminance contrast promotes perceptual averaging.
 \emph{J Vis}, \emph{15}(5), 2. \url{https://doi.org/10.1167/15.5.2}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Legge1979}{}}%
+\bibitem[\citeproctext]{ref-Kingdom2015b}
+Kingdom, F. A. A., \& Wang, D. (2015). Dichoptic colour-saturation
+masking is unmasked by binocular luminance contrast. \emph{Vision Res},
+\emph{116}(Pt A), 45--52.
+\url{https://doi.org/10.1016/j.visres.2015.08.016}
+
+\bibitem[\citeproctext]{ref-Legge1979}
 Legge, G. E. (1979). Spatial frequency masking in human vision:
 Binocular interactions. \emph{J Opt Soc Am}, \emph{69}(6), 838--847.
 \url{https://doi.org/10.1364/josa.69.000838}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Legge1984}{}}%
+\bibitem[\citeproctext]{ref-Legge1984}
 Legge, G. E. (1984). Binocular contrast summation--II. Quadratic
 summation. \emph{Vision Res}, \emph{24}(4), 385--394.
 \url{https://doi.org/10.1016/0042-6989(84)90064-6}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Levelt1965}{}}%
+\bibitem[\citeproctext]{ref-Levelt1965}
 Levelt, W. J. (1965). Binocular brightness averaging and contour
 information. \emph{Br J Psychol}, \emph{56}, 1--13.
 \url{https://doi.org/10.1111/j.2044-8295.1965.tb00939.x}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Livingstone1984}{}}%
+\bibitem[\citeproctext]{ref-Livingstone1984}
 Livingstone, M. S., \& Hubel, D. H. (1984). Anatomy and physiology of a
 color system in the primate visual cortex. \emph{J Neurosci},
 \emph{4}(1), 309--356.
 \url{https://doi.org/10.1523/JNEUROSCI.04-01-00309.1984}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Lu2008}{}}%
+\bibitem[\citeproctext]{ref-Lu2008}
 Lu, Z.-L., \& Dosher, B. A. (2008). Characterizing observers using
 external noise and observer models: Assessing internal representations
 with external noise. \emph{Psychol Rev}, \emph{115}(1), 44--82.
 \url{https://doi.org/10.1037/0033-295X.115.1.44}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Maehara2005}{}}%
+\bibitem[\citeproctext]{ref-Maehara2005}
 Maehara, G., \& Goryo, K. (2005). Binocular, monocular and dichoptic
 pattern masking. \emph{Optical Review}, \emph{12}(2), 76--82.
 \url{https://doi.org/10.1007/PL00021542}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Medina2009}{}}%
+\bibitem[\citeproctext]{ref-Medina2009}
 Medina, J. M., \& Mullen, K. T. (2009). Cross-orientation masking in
 human color vision. \emph{J Vis}, \emph{9}(3), 20.1--16.
 \url{https://doi.org/10.1167/9.3.20}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Meese2009}{}}%
+\bibitem[\citeproctext]{ref-Meese2009}
 Meese, T. S., \& Baker, D. H. (2009). Cross-orientation masking is speed
 invariant between ocular pathways but speed dependent within them.
 \emph{J Vis}, \emph{9}(5), 2.1--15. \url{https://doi.org/10.1167/9.5.2}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Meese2006}{}}%
+\bibitem[\citeproctext]{ref-Meese2006}
 Meese, T. S., Georgeson, M. A., \& Baker, D. H. (2006). Binocular
 contrast vision at and above threshold. \emph{J Vis}, \emph{6}(11),
 1224--1243. \url{https://doi.org/10.1167/6.11.7}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Moradi2009}{}}%
+\bibitem[\citeproctext]{ref-Moradi2009}
 Moradi, F., \& Heeger, D. J. (2009). Inter-ocular contrast normalization
 in human visual cortex. \emph{J Vis}, \emph{9}(3), 13.1--22.
 \url{https://doi.org/10.1167/9.3.13}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Mullen2014}{}}%
+\bibitem[\citeproctext]{ref-Mullen2014}
 Mullen, K. T., Kim, Y. J., \& Gheiratmand, M. (2014). Contrast
 normalization in colour vision: The effect of luminance contrast on
 colour contrast detection. \emph{Sci Rep}, \emph{4}, 7350.
 \url{https://doi.org/10.1038/srep07350}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Pelli1985}{}}%
+\bibitem[\citeproctext]{ref-Mullen1994}
+Mullen, K. T., \& Losada, M. A. (1994). Evidence for separate pathways
+for color and luminance detection mechanisms. \emph{J Opt Soc Am A Opt
+Image Sci Vis}, \emph{11}(12), 3136--3151.
+\url{https://doi.org/10.1364/josaa.11.003136}
+
+\bibitem[\citeproctext]{ref-Pelli1985}
 Pelli, D. G. (1985). Uncertainty explains many aspects of visual
 contrast detection and discrimination. \emph{J Opt Soc Am A},
 \emph{2}(9), 1508--1532. \url{https://doi.org/10.1364/josaa.2.001508}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Schutt2016}{}}%
+\bibitem[\citeproctext]{ref-Read2021}
+Read, J. C. A. (2021). Binocular vision and stereopsis across the animal
+kingdom. \emph{Annu Rev Vis Sci}, \emph{7}, 389--415.
+\url{https://doi.org/10.1146/annurev-vision-093019-113212}
+
+\bibitem[\citeproctext]{ref-Schutt2016}
 Schütt, H. H., Harmeling, S., Macke, J. H., \& Wichmann, F. A. (2016).
 Painfree and accurate bayesian estimation of psychometric functions for
 (potentially) overdispersed data. \emph{Vision Res}, \emph{122},
 105--123. \url{https://doi.org/10.1016/j.visres.2016.02.002}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Segala2023}{}}%
+\bibitem[\citeproctext]{ref-Segala2023}
 Segala, F. G., Bruno, A., Martin, J. T., Aung, M. T., Wade, A. R., \&
 Baker, D. H. (2023). Different rules for binocular combination of
 luminance flicker in cortical and subcortical pathways. \emph{eLife},
 \emph{12}, RP87048. \url{https://doi.org/10.7554/eLife.87048}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Sharpe2011}{}}%
+\bibitem[\citeproctext]{ref-Shapley2011}
+Shapley, R., \& Hawken, M. J. (2011). Color in the cortex: Single- and
+double-opponent cells. \emph{Vision Res}, \emph{51}(7), 701--717.
+\url{https://doi.org/10.1016/j.visres.2011.02.012}
+
+\bibitem[\citeproctext]{ref-Sharpe2011}
 Sharpe, L. T., Stockman, A., Jagla, W., \& Jägle, H. (2011). A luminous
 efficiency function, VD65* (λ), for daylight adaptation: A correction.
 \emph{Color Research \& Application}, \emph{36}(1), 42--46.
 https://doi.org/\url{https://doi.org/10.1002/col.20602}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Simmons2005}{}}%
+\bibitem[\citeproctext]{ref-Shooner2020}
+Shooner, C., \& Mullen, K. T. (2020). Enhanced luminance sensitivity on
+color and luminance pedestals: Threshold measurements and a model of
+parvocellular luminance processing. \emph{J Vis}, \emph{20}(6), 12.
+\url{https://doi.org/10.1167/jov.20.6.12}
+
+\bibitem[\citeproctext]{ref-Simmons2005}
 Simmons, D. R. (2005). The binocular combination of chromatic contrast.
 \emph{Perception}, \emph{34}(8), 1035--1042.
 \url{https://doi.org/10.1068/p5279}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Sincich2005}{}}%
+\bibitem[\citeproctext]{ref-Sincich2005}
 Sincich, L. C., \& Horton, J. C. (2005). The circuitry of V1 and V2:
 Integration of color, form, and motion. \emph{Annu Rev Neurosci},
 \emph{28}, 303--326.
 \url{https://doi.org/10.1146/annurev.neuro.28.061604.135731}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Stockman2000}{}}%
+\bibitem[\citeproctext]{ref-Stockman2000}
 Stockman, A., \& Sharpe, L. T. (2000). The spectral sensitivities of the
 middle- and long-wavelength-sensitive cones derived from measurements in
 observers of known genotype. \emph{Vision Res}, \emph{40}(13),
 1711--1737. \url{https://doi.org/10.1016/s0042-6989(00)00021-3}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Tootell1988}{}}%
-Tootell, R. B., Silverman, M. S., Hamilton, S. L., De Valois, R. L., \&
-Switkes, E. (1988). Functional anatomy of macaque striate cortex. III.
-color. \emph{J Neurosci}, \emph{8}(5), 1569--1593.
-\url{https://doi.org/10.1523/JNEUROSCI.08-05-01569.1988}
+\bibitem[\citeproctext]{ref-Switkes1988}
+Switkes, E., Bradley, A., \& De Valois, K. K. (1988). Contrast
+dependence and mechanisms of masking interactions among chromatic and
+luminance gratings. \emph{J Opt Soc Am A}, \emph{5}(7), 1149--1162.
+\url{https://doi.org/10.1364/josaa.5.001149}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Wallis2013}{}}%
+\bibitem[\citeproctext]{ref-Wallis2013}
 Wallis, S. A., Baker, D. H., Meese, T. S., \& Georgeson, M. A. (2013).
 The slope of the psychometric function and non-stationarity of
 thresholds in spatiotemporal contrast vision. \emph{Vision Res},
 \emph{76}, 1--10. \url{https://doi.org/10.1016/j.visres.2012.09.019}
 
-\leavevmode\vadjust pre{\hypertarget{ref-Yu2002}{}}%
+\bibitem[\citeproctext]{ref-Wolfe1983}
+Wolfe, J. M. (1983). Influence of spatial frequency, luminance, and
+duration on binocular rivalry and abnormal fusion of briefly presented
+dichoptic stimuli. \emph{Perception}, \emph{12}(4), 447--456.
+\url{https://doi.org/10.1068/p120447}
+
+\bibitem[\citeproctext]{ref-Yu2002}
 Yu, C., Klein, S. A., \& Levi, D. M. (2002). Facilitation of contrast
 detection by cross-oriented surround stimuli and its psychophysical
 mechanisms. \emph{J Vis}, \emph{2}(3), 243--255.
@@ -1339,43 +1443,48 @@ mechanisms. \emph{J Vis}, \emph{2}(3), 243--255.
 
 \end{CSLReferences}
 
-\hypertarget{appendices}{%
-\section{Appendices}\label{appendices}}
+\section{Appendices}\label{appendices}
 
 \beginsupplement
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/individualdippers.pdf}
+\centering{
+
+\includegraphics{Figures/individualdippers.pdf}
 
 }
 
 \caption{\label{fig-individualdippers}Individual participant data from
 Experiment 1.}
 
-\end{figure}
+\end{figure}%
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/individualMCS.pdf}
+\centering{
+
+\includegraphics{Figures/individualMCS.pdf}
 
 }
 
 \caption{\label{fig-individualMCS}Individual participant data from
 Experiment 2.}
 
-\end{figure}
+\end{figure}%
 
 \begin{figure}
 
-{\centering \includegraphics{Figures/individualdiscs.pdf}
+\centering{
+
+\includegraphics{Figures/individualdiscs.pdf}
 
 }
 
 \caption{\label{fig-individualdiscs}Individual participant data from
 Experiment 3.}
 
-\end{figure}
+\end{figure}%
 
 
 
