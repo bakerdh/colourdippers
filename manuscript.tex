@@ -177,7 +177,7 @@
 \urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
   pdftitle={Binocular integration of chromatic and luminance signals},
-  pdfauthor={Daniel H. Baker\^{}\{1,2,*\}; Kirralise J. Hansford\^{}1; Federico G. Segala\^{}1; Annie Y. Morsi\^{}1; Rowan J. Huxley\^{}\{1,3\}; Joel T. Martin\^{}\{1,4\}; Maya Rockman\^{}1; Alex R. Wade\^{}\{1,2\}},
+  pdfauthor={Daniel H. Baker\^{}\{1,2,*\}; Kirralise J. Hansford\^{}1; Federico G. Segala\^{}1; Anisa Y. Morsi\^{}1; Rowan J. Huxley\^{}\{1,3\}; Joel T. Martin\^{}\{1,4\}; Maya Rockman\^{}1; Alex R. Wade\^{}\{1,2\}},
   colorlinks=true,
   linkcolor={blue},
   filecolor={Maroon},
@@ -187,7 +187,7 @@
 
 \title{Binocular integration of chromatic and luminance signals}
 \author{Daniel H. Baker\(^{1,2,*}\) \and Kirralise J.
-Hansford\(^1\) \and Federico G. Segala\(^1\) \and Annie Y.
+Hansford\(^1\) \and Federico G. Segala\(^1\) \and Anisa Y.
 Morsi\(^1\) \and Rowan J. Huxley\(^{1,3}\) \and Joel T.
 Martin\(^{1,4}\) \and Maya Rockman\(^1\) \and Alex R. Wade\(^{1,2}\)}
 \date{}
@@ -211,20 +211,20 @@ processes apply in colour-sensitive pathways. In our first experiment,
 we measured contrast discrimination (`dipper') functions for four key
 ocular configurations (monocular, binocular, half-binocular and
 dichoptic), for achromatic, isoluminant L-M and isoluminant S-(L+M)
-sine-wave grating stimuli. We find a similar pattern of results across
-stimuli, implying equivalently strong interocular suppression within
-each pathway. Our second experiment measured dichoptic masking within
-and between pathways using the method of constant stimuli. Masking was
-strongest within-pathway, and weakest between S-(L+M) and achromatic
-mechanisms. Finally, we repeated the dipper experiment using temporal
-luminance modulations, which produced slightly weaker interocular
-suppression than for spatially modulated stimuli. We interpret our
-results in the context of a contemporary two-stage model of binocular
-contrast gain control, implemented here using a hierarchical Bayesian
-framework. Posterior distributions of the weight of interocular
-suppression overlapped with a value of 1 for all dipper data sets, and
-the model captured well the pattern of thresholds from all three
-experiments.
+sine-wave grating stimuli (L: long-, M: medium-, S: short-wavelength).
+We find a similar pattern of results across stimuli, implying
+equivalently strong interocular suppression within each pathway. Our
+second experiment measured dichoptic masking within and between pathways
+using the method of constant stimuli. Masking was strongest
+within-pathway, and weakest between S-(L+M) and achromatic mechanisms.
+Finally, we repeated the dipper experiment using temporal luminance
+modulations, which produced slightly weaker interocular suppression than
+for spatially modulated stimuli. We interpret our results in the context
+of a contemporary two-stage model of binocular contrast gain control,
+implemented here using a hierarchical Bayesian framework. Posterior
+distributions of the weight of interocular suppression overlapped with a
+value of 1 for all dipper data sets, and the model captured well the
+pattern of thresholds from all three experiments.
 
 \textbf{Keywords}: \emph{isoluminant}, \emph{dichoptic}, \emph{binocular
 interactions}, \emph{gain control}, \emph{summation},
@@ -308,23 +308,28 @@ panel of Figure~\ref{fig-exampledips}) is well-described by the gain
 control model of Meese et al. (2006) for achromatic stimuli.
 
 At the output of the human retina, cone responses are split into three
-distinct pathways. The sum of long- and medium-wavelength cone outputs
-(L+M) transmits luminance information (see Sharpe et al., 2011), and is
-likely responsible for the binocular combination effects previously
-studied using achromatic stimuli (see above). The difference of long-
-and medium-wavelength cone outputs (L-M) is responsive to chromatic
-stimuli modulating along a red/green axis in colour space. Finally the
-opponent (S-(L+M)) channel codes chromatic stimuli modulating along a
-blue/yellow axis. At isoluminance, where (L+M) is held constant, this
-channel is driven purely by the S-cone outputs. Within each chromatic
-pathway, contrast discrimination functions are similar to those for
-achromatic vision, showing evidence of facilitation at low pedestal
-contrasts and masking at high pedestal contrasts (Chen et al., 2000;
-Switkes et al., 1988). There are also interactions between luminance and
-colour mechanisms, which are able to mask each other (Chen et al., 2000;
-Mullen \& Losada, 1994; Switkes et al., 1988), and under some
-circumstances also show cross-pathway facilitation (Cole et al., 1990;
-Mullen \& Losada, 1994; Shooner \& Mullen, 2020; Switkes et al., 1988).
+distinct pathways. The sum of long- (L) and medium- (M) wavelength cone
+outputs (L+M) transmits luminance information (see Sharpe et al., 2011),
+and is likely responsible for the binocular combination effects
+previously studied using achromatic stimuli (see above). The difference
+of long- and medium-wavelength cone outputs (L-M) is responsive to
+chromatic stimuli modulating along a red/green axis in colour space.
+Finally the opponent short-wavelength (S) channel codes chromatic
+stimuli modulating along a blue/yellow axis (S-(L+M)). At isoluminance,
+where (L+M) is held constant, this channel is driven purely by the
+S-cone outputs. Note that we use these shorthand terms throughout to
+refer to chromatic mechanisms, but acknowledge that in reality the
+photoreceptor outputs are weighted, for example S-0.5(L+M), and 3L+M.
+Within each chromatic pathway, contrast discrimination functions (which
+plot discrimination thresholds against pedestal contrast; sometimes
+referred to as TvC functions) are similar to those for achromatic
+vision, showing evidence of facilitation at low pedestal contrasts and
+masking at high pedestal contrasts (Chen et al., 2000; Switkes et al.,
+1988). There are also interactions between luminance and colour
+mechanisms, which are able to mask each other (Chen et al., 2000; Mullen
+\& Losada, 1994; Switkes et al., 1988), and under some circumstances
+also show cross-pathway facilitation (Cole et al., 1990; Mullen \&
+Losada, 1994; Shooner \& Mullen, 2020; Switkes et al., 1988).
 
 There has not yet been a detailed investigation of binocular contrast
 interactions in either chromatic pathway, however there are reasons to
@@ -340,15 +345,15 @@ Libenson, 2015; Mullen et al., 2014), yet these have not been fully
 explored for arrangements where the target and mask have the same
 orientation. Finally, the neurophysiological underpinnings of colour
 vision may be distinct from those of the achromatic system. The
-classical view is that in primary visual cortex (V1), chromatic signals
+classical view was that in primary visual cortex (V1), chromatic signals
 are processed in `blob' regions that are revealed by cytochrome oxidase
 staining (Horton \& Hubel, 1981), and are largely monocular (Livingstone
-\& Hubel, 1984). However subsequent work has revealed a more complex
-arrangement, making such a clear-cut phyisological distinction unlikely
-(for a review, see Shapley \& Hawken, 2011). Nevertheless, the
-physiological segregation between pathways at the output of the retina
-could still lead to differences in the way signals are combined across
-the eyes.
+\& Hubel, 1984). However subsequent work has revealed a large population
+of colour-luminance neurons with a subset of colour-only ones, making
+such a clear-cut physiological distinction unlikely (for a review, see
+Shapley \& Hawken, 2011). Nevertheless, the physiological segregation
+between pathways at the output of the retina could still lead to
+differences in the way signals are combined across the eyes.
 
 The spatiotemporal profile of stimuli also appears to impact their
 binocular combination. For example, matching studies indicate that
@@ -896,8 +901,8 @@ nonlinearity, and perhaps also other phenomena such as uncertainty
 We additionally implemented a hierarchical Bayesian version of the model
 to estimate full posterior parameter distributions. This model was fit
 simultaneously to the full trial-by-trial data from all participants who
-participated in a given experiment (i.e.~the model was fitted separately
-to each of the four dipper data sets). Figure~\ref{fig-bayesianmodel}a-d
+completed a given experiment (i.e.~the model was fitted separately to
+each of the four dipper data sets). Figure~\ref{fig-bayesianmodel}a-d
 summarises the model behaviour, which displays the same pattern of
 dipper functions as we found empirically. Modal posterior parameter
 values (maximum a posteriori (MAP) estimates) are given in the lower
@@ -1121,7 +1126,7 @@ both eyes (Baker et al., 2007). Similar processes of response invariance
 have also been reported using fMRI (Moradi \& Heeger, 2009) and
 steady-state EEG (Baker \& Wade, 2017).
 
-In V1, the classical view is that chromatic stimuli are processed in
+In V1, the classical view was that chromatic stimuli are processed in
 `blob' regions that are largely monocular as they fall within ocular
 dominance columns (Livingstone \& Hubel, 1984). However more recent work
 has shown chromatic processing outside of the blobs (Sincich \& Horton,
