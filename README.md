@@ -1,6 +1,6 @@
 These materials are a computationally reproducible version of the paper:
 
-Baker, Hansford, Segala, Morsi, Huxley, Martin, Rockman & Wade (2024). Binocular integration of chromatic and luminance signals.
+Baker, D.H., Hansford, K.J., Segala, F.G., Morsi, A.Y., Huxley, R.J., Martin, J.T., Rockman, M. & Wade, A.R. (2024). Binocular integration of chromatic and luminance signals. Journal of Vision, 24(12): 7, https://doi.org/10.1167/jov.24.12.7
 
 The file manuscript.Rmd is an R markdown file that will perform all analyses and figure creation, and produce a pdf version of the manuscript.
 
